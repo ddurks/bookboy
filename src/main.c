@@ -450,16 +450,16 @@ static void render_page(u32 page)
 }
 
 /* ---- system ---- */
-/* VBlank IRQ so vsync() can Halt the CPU instead of spinning — a reader
- * idles minutes per page, and busy-waiting would drain the SP battery for
- * nothing. The handler just acknowledges IF and the BIOS IntrWait flag.
+/* VBlank IRQ so vsync() can Halt the CPU instead of spinning — a reader idles
+ * minutes per page, and busy-waiting drains the SP battery for nothing. The
+ * handler acks hardware IF and sets the BIOS IntrWait flag at 0x3007FF8.
  * gba.specs installs no handler, so we own the ISR vector at 0x3007FFC. */
 __attribute__((section(".iwram"), target("arm"), used))
 static void irq_handler(void)
 {
     u16 f = REG_IF;
     REG_IF = f;                     /* ack hardware */
-    REG_INTR_CHECK |= f;            /* ack for VBlankIntrWait */
+    REG_INTR_CHECK |= f;            /* ack for VBlankIntrWait (swi 5) */
 }
 
 static void system_init(void)

@@ -92,15 +92,15 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    /* DataTable: magic, version, font/books/library/mini/title, default_pal,
-     * art_off, then zero pad to 64 bytes */
+    /* DataTable (64 bytes): magic(8) + version(4) + 5 offsets(20) +
+     * default_pal(4) + art_off(4) = 40 bytes, then zero pad to 64. */
     fwrite("BKBYDAT1", 1, 8, out);
     w32le(out, 1);                  /* version */
     for (int i = 0; i < 5; i++)
         w32le(out, offs[i]);        /* font books library mini title */
     w32le(out, 0);                  /* default_pal: native ROMs unset */
     w32le(out, offs[5]);            /* art_off */
-    for (long i = 8 + 4 + 24 + 8; i < 64; i++)
+    for (long i = 40; i < 64; i++)  /* pad the 40 bytes written up to 64 */
         fputc(0, out);
     pos = table_at + 64;
     for (int i = 0; i < 6; i++) {
