@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bookboy advance — put books on your Game Boy</title>
+<meta name="description" content="Convert EPUBs into a Game Boy Advance e-reader ROM, entirely in your browser. Nothing is uploaded.">
+<style>
+@font-face { font-family: XCharter; src: url(assets/XCharter-Roman.otf); }
+@font-face { font-family: XCharter; font-style: italic; src: url(assets/XCharter-Italic.otf); }
+@font-face { font-family: XCharter; font-weight: bold; src: url(assets/XCharter-Bold.otf); }
+:root {
+  --paper: #F2EAD7; --paper2: #EAE0C8; --ink: #2B2620; --dim: #6b6157;
+  --accent: #8a3324;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: XCharter, Charter, Georgia, serif; font-size: 18px;
+  line-height: 1.5;
+}
+main { max-width: 860px; margin: 0 auto; padding: 24px 20px 80px; }
+header { display: flex; align-items: center; gap: 20px; margin: 18px 0 8px; }
+header img { width: 96px; height: 96px; image-rendering: auto; }
+h1 { font-size: 40px; letter-spacing: 2px; margin: 0; line-height: 1.05; }
+h1 small { display:block; font-size: 16px; letter-spacing: 1px; color: var(--dim); font-weight: normal; }
+h2 { margin: 42px 0 8px; border-bottom: 1px solid var(--ink); padding-bottom: 4px; }
+.tagline { margin: 8px 0 26px; color: var(--dim); font-style: italic; }
+#drop {
+  border: 2px dashed var(--dim); border-radius: 10px; padding: 42px 20px;
+  text-align: center; cursor: pointer; transition: background .15s;
+  font-size: 20px;
+}
+#drop.hot, #drop:hover { background: var(--paper2); }
+#drop .sub { font-size: 15px; color: var(--dim); margin-top: 6px; }
+#status { min-height: 24px; color: var(--accent); margin: 10px 2px; font-style: italic; }
+#shelfwrap { margin-top: 8px; }
+.book {
+  display: flex; align-items: baseline; gap: 12px; padding: 7px 10px;
+  border-radius: 6px; cursor: pointer;
+}
+.book:hover { background: var(--paper2); }
+.book.sel { background: var(--paper2); box-shadow: inset 3px 0 0 var(--ink); }
+.btitle { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bmeta { color: var(--dim); font-size: 15px; white-space: nowrap; }
+.del { border: none; background: none; color: var(--dim); font-size: 18px; cursor: pointer; }
+.del:hover { color: var(--accent); }
+#bar { height: 14px; background: var(--paper2); border: 1px solid var(--dim);
+  border-radius: 7px; overflow: hidden; margin: 10px 0 2px; }
+#barfill { height: 100%; background: var(--ink); width: 0; transition: width .3s; }
+#barfill.over { background: var(--accent); }
+#barlabel { font-size: 14px; color: var(--dim); }
+.knobs { display: flex; flex-wrap: wrap; gap: 22px; align-items: center;
+  margin: 18px 0; font-size: 16px; }
+.knobs label { display: flex; gap: 7px; align-items: center; }
+select { font-family: inherit; font-size: 15px; background: var(--paper);
+  border: 1px solid var(--dim); border-radius: 4px; padding: 2px 6px; }
+.pal { display: inline-flex; gap: 6px; }
+.pal input { display: none; }
+.pal span { width: 22px; height: 22px; border-radius: 50%; display: inline-block;
+  border: 2px solid transparent; cursor: pointer; }
+.pal input:checked + span { border-color: var(--accent); }
+#previewwrap { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin: 20px 0; }
+.gbaframe { background: #3a3a45; padding: 18px 22px; border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+#gba { width: 480px; max-width: 100%; image-rendering: pixelated; display: block; }
+.pagenav { display: flex; gap: 10px; align-items: center; font-size: 16px; }
+button.big {
+  font-family: inherit; font-size: 20px; padding: 10px 26px;
+  background: var(--ink); color: var(--paper); border: none; border-radius: 8px;
+  cursor: pointer; letter-spacing: 1px;
+}
+button.big:disabled { opacity: .4; cursor: default; }
+button.nav { font-family: inherit; font-size: 16px; background: var(--paper2);
+  border: 1px solid var(--dim); border-radius: 6px; padding: 4px 14px; cursor: pointer; }
+#buildrow { display: flex; gap: 18px; align-items: center; margin: 16px 0; }
+table { border-collapse: collapse; font-size: 16px; width: 100%; }
+td, th { text-align: left; padding: 6px 10px 6px 0; vertical-align: top;
+  border-bottom: 1px solid var(--paper2); }
+th { border-bottom: 1px solid var(--dim); }
+.note { font-size: 15px; color: var(--dim); }
+kbd { background: var(--paper2); border: 1px solid var(--dim); border-radius: 4px;
+  padding: 0 6px; font-family: inherit; font-size: 15px; }
+footer { margin-top: 60px; font-size: 14px; color: var(--dim);
+  border-top: 1px solid var(--paper2); padding-top: 14px; }
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="assets/bookboy.png" alt="bookboy mascot">
+    <h1>BOOKBOY ADVANCE<small>a paperback library for your Game Boy Advance</small></h1>
+  </header>
+  <p class="tagline">Drop in EPUBs, get a .gba ROM — typeset like a paperback:
+  justified Charter with real kerning and hyphenation, chapters, bookmarks,
+  four reading palettes. Everything happens in your browser; your books never
+  leave your machine.</p>
+
+  <div id="drop">
+    drop .epub files here <span class="sub">or click to choose — add several to build a library (up to 32&nbsp;MB)</span>
+    <input type="file" id="file" accept=".epub" multiple hidden>
+  </div>
+  <div id="status"></div>
+
+  <div id="shelfwrap" style="display:none">
+    <div id="shelf"></div>
+    <div id="bar"><div id="barfill"></div></div>
+    <div id="barlabel"></div>
+  </div>
+
+  <div class="knobs">
+    <label>type size
+      <select id="fontsize">
+        <option value="13">13 px</option>
+        <option value="14" selected>14 px (paperback)</option>
+        <option value="16">16 px (large)</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="covers" checked> cover art</label>
+    <label>default palette
+      <span class="pal">
+        <label title="paperback"><input type="radio" name="pal" value="0" checked><span style="background:linear-gradient(135deg,#F2EAD7 50%,#2B2620 50%)"></span></label>
+        <label title="high contrast"><input type="radio" name="pal" value="1"><span style="background:linear-gradient(135deg,#FFFBF0 50%,#000 50%)"></span></label>
+        <label title="bright"><input type="radio" name="pal" value="2"><span style="background:linear-gradient(135deg,#FFF 50%,#333 50%)"></span></label>
+        <label title="night"><input type="radio" name="pal" value="3"><span style="background:linear-gradient(135deg,#101016 50%,#D8D4C8 50%)"></span></label>
+      </span>
+    </label>
+  </div>
+
+  <div id="previewwrap" style="display:none">
+    <div class="gbaframe"><canvas id="gba" width="240" height="160"></canvas></div>
+    <div class="pagenav">
+      <button class="nav" id="prev">◀</button>
+      <span id="pageno">–</span>
+      <button class="nav" id="next">▶</button>
+    </div>
+  </div>
+
+  <div id="buildrow" style="display:none">
+    <button class="big" id="build">Download ROM</button>
+    <span class="note">then copy the .gba onto your flashcart’s SD card</span>
+  </div>
+
+  <h2>Getting it onto a Game Boy</h2>
+  <p>You need a <b>flashcart</b> — a cartridge with a microSD slot. Copy the
+  .gba onto the card (FAT32, any folder), slot it in, and pick it from the
+  cart’s menu. Your reading position saves automatically (the cart writes a
+  <kbd>.sav</kbd> beside the ROM). In the reader:
+  <kbd>A</kbd>/<kbd>→</kbd> page forward, <kbd>←</kbd> back,
+  <kbd>↑</kbd>/<kbd>↓</kbd> jump chapters, <kbd>SELECT</kbd> cycles palettes,
+  <kbd>B</kbd> returns to your library.</p>
+
+  <table>
+    <tr><th>Cart</th><th>≈ Price</th><th>Worth knowing</th></tr>
+    <tr><td><b>EZ-Flash&nbsp;Air</b></td><td>$40</td>
+      <td>The current budget pick. One extra step: after copying, you “write”
+      the ROM from SD to the cart’s internal storage (~2&nbsp;min for a full
+      32&nbsp;MB library) before playing.</td></tr>
+    <tr><td><b>EZ-Flash Omega&nbsp;DE</b></td><td>$70–90</td>
+      <td>Discontinued in 2025 but the nicest EZ-Flash — instant loading,
+      saves without a battery. Grab remaining stock if you see it.</td></tr>
+    <tr><td><b>EverDrive GBA Mini</b> (krikzz)</td><td>$99</td>
+      <td>The premium option: fastest, most reliable, drag-and-drop.
+      Buy from krikzz.com or Stone Age Gamer.</td></tr>
+    <tr><td>SuperCard clones</td><td>$15–25</td>
+      <td>Avoid — 2005-era design, needs ROM patching, 2&nbsp;GB card limit,
+      fragile saves. The EZ-Flash Air is worth the extra $15.</td></tr>
+  </table>
+  <p class="note">Buy from the makers’ listed resellers (Handheld Legend,
+  SenkoGames, Retro Game Repair Shop, krikzz.com) — marketplaces are full of
+  lookalike clones. Note the EZ-Flash <i>Junior</i> is GB/GBC-only and won’t
+  run GBA ROMs.</p>
+
+  <p><b>What plays it:</b> any Game Boy Advance — the backlit SP
+  (AGS&#8209;101) is the best screen of the era; the frontlit SP
+  (AGS&#8209;001) works great with the high-contrast palette. Also the Game
+  Boy Micro, and the GBA slot of a DS/DS&nbsp;Lite. The Analogue Pocket can
+  even run the .gba straight from its own SD card via the community openFPGA
+  GBA core. No hardware? <a href="https://mgba.io">mGBA</a> (desktop), Delta
+  (iOS), or Lemuroid (Android) run it perfectly.</p>
+
+  <footer>
+    Typeset in <a href="https://ctan.org/pkg/xcharter">XCharter</a>
+    (Bitstream Charter’s free descendant) · hyphenation by hunspell patterns ·
+    image resampling adapted from Pillow (HPND) · built with FreeType &amp;
+    Emscripten · no analytics, no uploads — your books stay yours.
+  </footer>
+</main>
+<script src="bookboy_core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

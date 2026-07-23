@@ -1,0 +1,23 @@
+# Build state — contains extracted EPUB text (copyrighted) and generated
+# ROMs that embed book contents. NEVER commit.
+/build/
+/out/
+
+# Emulator/flashcart save files
+*.sav
+
+# Host build objects
+*.o
+*.elf
+
+# Generated web artifacts (built by `make wasm` / `make websync`, or CI).
+# The wasm module and packed data blobs are outputs, not sources.
+/web/bookboy_core.js
+/web/bookboy_core.wasm
+/web/assets/stub.gba
+/web/assets/title.bin
+/web/assets/art.bin
+
+# macOS
+.DS_Store
+/books

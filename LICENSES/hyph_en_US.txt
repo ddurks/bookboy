@@ -1,0 +1,24 @@
+tools/data/hyph_en_US.dic and web/assets/hyph_en_US.dic are the US English
+Liang hyphenation patterns as packaged by the hunspell/hyphen project
+(https://github.com/hunspell/hyphen), converted from Franklin Mark Liang's
+original TeX hyphenation patterns (hyphen.tex / ushyphmax.tex).
+
+The hunspell hyphen dictionaries are made available under a tri-license:
+
+    The contents of this software may be used under the terms of the GNU
+    General Public License Version 2 or later (the "GPL"), or the GNU Lesser
+    General Public License Version 2.1 or later (the "LGPL"), or the Mozilla
+    Public License Version 1.1 or later (the "MPL").
+
+The underlying US English patterns (ushyphmax.tex, Gerard D.C. Kuiken;
+based on hyphen.tex, Copyright (C) 1990 Franklin Mark Liang) are
+themselves freely redistributable provided the copyright notice and this
+permission notice are preserved:
+
+    Copying and distribution of this file, with or without modification,
+    are permitted in any medium without royalty provided the copyright
+    notice and this notice are preserved.
+
+The first line of the .dic file ("UTF-8") is the hunspell encoding tag; the
+original license header from the source package is reproduced here because
+the compiled .dic ships without it.
