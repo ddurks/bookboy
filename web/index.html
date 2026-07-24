@@ -6,7 +6,7 @@
     <title>bookboy advance</title>
     <meta
       name="description"
-      content="Convert EPUBs into a Game Boy Advance e-reader ROM, entirely in your browser. Nothing is uploaded."
+      content="Convert EPUBs into a Game Boy Advance e-reader ROM, entirely in your browser."
     />
     <style>
       @font-face {
@@ -343,6 +343,50 @@
         padding: 2px 12px;
         cursor: pointer;
       }
+      #playbtn {
+        font-family: inherit;
+        font-size: 15px;
+        background: var(--paper);
+        color: var(--ink);
+        border: 1.5px solid var(--ink);
+        border-radius: 8px;
+        padding: 6px 18px;
+        margin-top: 10px;
+        cursor: pointer;
+      }
+      #playbtn:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      /* the live emulator: mGBA-wasm running the actual ROM, loaded on demand */
+      #emuwrap {
+        margin: 16px 0;
+      }
+      #emu {
+        width: 100%;
+        max-width: 480px;
+        aspect-ratio: 3 / 2;
+        margin: 0 auto;
+        background: var(--ink);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .emuhint {
+        text-align: center;
+        font-size: 13px;
+        opacity: 0.65;
+        margin: 8px auto 0;
+        max-width: 400px;
+        line-height: 1.5;
+      }
+      .emuhint kbd {
+        background: var(--s1);
+        border: 1px solid var(--ink);
+        border-radius: 4px;
+        padding: 0 5px;
+        font-family: inherit;
+        font-size: 12px;
+      }
 
       /* the download book — the tall standing tome you take home */
       #buildrow {
@@ -382,6 +426,13 @@
         margin: 0 auto -1.6%;
         width: 98%;
       }
+      /* an open section pushes the next book down so its page shows between
+         them (positive bottom margin cancels the touching overlap) */
+      details.manual[open] {
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 3;
+      }
       details.manual:nth-of-type(3n + 1) summary {
         background-image: url(assets/spine_2.png);
       }
@@ -418,7 +469,7 @@
         color: var(--ink);
         border: 1.5px solid var(--ink);
         border-radius: 0 0 9px 9px;
-        margin: -4% 3% 3%;
+        margin: -8px 3% 0;
         padding: 14px 18px 16px;
         font-size: 16px;
         line-height: 1.5;
@@ -476,7 +527,7 @@
     <p class="sub">a lil' library for Game Boy Advance</p>
     <p class="intro">
       Drop in EPUBs, get a Game Boy Advance ROM — typeset like a paperback,
-      built entirely in your browser. Nothing is uploaded.
+      built entirely in your browser.
     </p>
 
     <div id="drop" tabindex="0" role="button" aria-label="Add EPUB files">
@@ -544,6 +595,7 @@
         <span id="pageno">–</span>
         <button id="next" aria-label="next page">▶</button>
       </div>
+      <button id="playbtn">▶ preview on a Game Boy</button>
     </div>
 
     <div id="shelfwrap" style="display: none">
@@ -559,14 +611,21 @@
       <button id="build">Download .gba</button>
     </div>
 
+    <div id="emuwrap" style="display: none">
+      <div id="emu"></div>
+      <p class="emuhint" id="emuhint">
+        the real ROM, running here — <kbd>Enter</kbd> start,
+        <kbd>Z</kbd>/<kbd>X</kbd> A/B, arrows to move,
+        <kbd>Shift</kbd> select
+      </p>
+    </div>
+
     <details class="manual">
       <summary>Getting it onto a Game Boy</summary>
       <div class="page">
         You need a <b>flashcart</b> — a cartridge with a microSD slot. Copy the
         .gba onto the card (FAT32, any folder) and pick it from the cart menu.
-        Your place saves automatically. In the reader: <kbd>A</kbd>/<kbd>→</kbd>
-        forward, <kbd>←</kbd> back, <kbd>↑</kbd>/<kbd>↓</kbd> chapters,
-        <kbd>SELECT</kbd> palette, <kbd>B</kbd> back to the library.
+        Your place saves automatically.
         <table>
           <tr>
             <td><b>EZ-Flash&nbsp;Air</b></td>
@@ -582,6 +641,17 @@
         Buy from the makers' resellers to dodge clones. Any GBA plays it — the
         backlit SP (AGS-101) has the nicest screen; the frontlit AGS-001 pairs
         well with the high-contrast palette.
+      </div>
+    </details>
+
+    <details class="manual">
+      <summary>Controls</summary>
+      <div class="page">
+        In the reader: <kbd>A</kbd>/<kbd>→</kbd> page forward,
+        <kbd>←</kbd> back, <kbd>↑</kbd>/<kbd>↓</kbd> jump chapters,
+        <kbd>SELECT</kbd> cycles the four palettes, <kbd>B</kbd> returns to your
+        library. In the library, <kbd>↑</kbd>/<kbd>↓</kbd> browse the stack and
+        <kbd>A</kbd> opens a book.
       </div>
     </details>
 

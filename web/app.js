@@ -262,6 +262,11 @@ async function retypeset() {
     await initCore();
     setStatus('typesetting…');
     setBuild('');                 // the built ROM (if any) is now stale
+    if (emuLoaded) {               // the booted emulator predates this change
+      const h = $('emuhint');
+      if (h) h.textContent =
+        'this shows an earlier build — refresh the page to preview your latest library';
+    }
     await new Promise((r) => setTimeout(r, 20));  // let UI paint
     cc('bw_reset', null, [], []);
     for (const b of books) feedBook(b);
@@ -385,49 +390,103 @@ function part(which) {
   return core.HEAPU8.slice(ptr, ptr + size);
 }
 
+/* Finalize the wasm layout and concatenate stub + data table + blobs into a
+ * complete .gba — the same JS "rompack". Returns {rom, romSize}. */
+async function assembleRom() {
+  const total = cc('bw_finalize', 'number', [], []);
+  if (total < 0) throw new Error('layout incomplete');
+  const { stub, title, art } = await fetchAssets();
+  const blobs = [part(0), part(1), part(2), part(3), title, art];
+
+  const tableAt = (stub.length + 255) & ~255;
+  const align4 = (n) => (n + 3) & ~3;
+  const offs = [];
+  let cur = 64;
+  for (const b of blobs) { offs.push(cur); cur += align4(b.length); }
+  const romSize = tableAt + cur;
+  if (romSize > ROM_LIMIT) throw new Error('ROM too large');
+
+  const rom = new Uint8Array(romSize);
+  rom.set(stub, 0);
+  const dv = new DataView(rom.buffer);
+  const M = 'BKBYDAT1';
+  for (let i = 0; i < 8; i++) rom[tableAt + i] = M.charCodeAt(i);
+  dv.setUint32(tableAt + 8, 1, true);
+  for (let i = 0; i < 5; i++) dv.setUint32(tableAt + 12 + 4 * i, offs[i], true);
+  dv.setUint32(tableAt + 36, offs[5], true);   // art blob
+  const pal = parseInt(document.querySelector('input[name=pal]:checked').value, 10);
+  dv.setUint32(tableAt + 32, pal + 1, true);   // default palette (1-based)
+  for (let i = 0; i < blobs.length; i++)
+    rom.set(blobs[i], tableAt + offs[i]);
+  return { rom, romSize };
+}
+
+function romFilename() {
+  return books.length === 1
+    ? books[0].title.replace(/[^\w ]+/g, '').trim().replace(/ +/g, '_')
+        .toLowerCase().slice(0, 32) + '.gba'
+    : 'bookboy_library.gba';
+}
+
 async function buildRom() {
   if (busy || !books.length) return;
   setBuild('building ROM…');
   try {
-    const total = cc('bw_finalize', 'number', [], []);
-    if (total < 0) { setBuild('layout incomplete — try again'); return; }
-    const { stub, title, art } = await fetchAssets();
-    const blobs = [part(0), part(1), part(2), part(3), title, art];
-
-    const tableAt = (stub.length + 255) & ~255;
-    const align4 = (n) => (n + 3) & ~3;
-    const offs = [];
-    let cur = 64;
-    for (const b of blobs) { offs.push(cur); cur += align4(b.length); }
-    const romSize = tableAt + cur;
-    if (romSize > ROM_LIMIT) { setBuild('ROM too large'); return; }
-
-    const rom = new Uint8Array(romSize);
-    rom.set(stub, 0);
-    const dv = new DataView(rom.buffer);
-    const M = 'BKBYDAT1';
-    for (let i = 0; i < 8; i++) rom[tableAt + i] = M.charCodeAt(i);
-    dv.setUint32(tableAt + 8, 1, true);
-    for (let i = 0; i < 5; i++) dv.setUint32(tableAt + 12 + 4 * i, offs[i], true);
-    dv.setUint32(tableAt + 36, offs[5], true);   // art blob
-    const pal = parseInt(document.querySelector('input[name=pal]:checked').value, 10);
-    dv.setUint32(tableAt + 32, pal + 1, true);   // default palette (1-based)
-    for (let i = 0; i < blobs.length; i++)
-      rom.set(blobs[i], tableAt + offs[i]);
-
+    const { rom, romSize } = await assembleRom();
     const a = document.createElement('a');
     const url = URL.createObjectURL(new Blob([rom], { type: 'application/octet-stream' }));
     a.href = url;
-    a.download = books.length === 1
-      ? books[0].title.replace(/[^\w ]+/g, '').trim().replace(/ +/g, '_')
-          .toLowerCase().slice(0, 32) + '.gba'
-      : 'bookboy_library.gba';
+    a.download = romFilename();
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
     setBuild(`done — ${fmtMB(romSize)} ROM with ${books.length} book` +
              (books.length > 1 ? 's' : ''));
   } catch (e) {
     setBuild('error building ROM: ' + e.message);
+  }
+}
+
+/* ---------------- lazy emulator ("preview on a Game Boy") ---------------- */
+let emuLoaded = false;
+
+function loadEmulatorJS(gameUrl) {
+  return new Promise((resolve, reject) => {
+    window.EJS_player = '#emu';
+    window.EJS_core = 'gba';
+    window.EJS_gameUrl = gameUrl;
+    window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+    window.EJS_startOnLoaded = true;
+    window.EJS_volume = 0;
+    window.EJS_Buttons = { cheat: false, saveState: false, loadState: false,
+                           netplay: false, gamepad: false };
+    const s = document.createElement('script');
+    s.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('could not load the emulator'));
+    document.body.appendChild(s);
+  });
+}
+
+/* EmulatorJS loads once per page (EJS_Runtime is non-configurable), so the
+ * emulator is a one-shot snapshot booted below the live still preview. */
+async function launchEmulator() {
+  if (busy || !books.length || emuLoaded) return;
+  emuLoaded = true;
+  const btn = $('playbtn');
+  btn.disabled = true;
+  btn.textContent = 'loading emulator…';
+  try {
+    const { rom } = await assembleRom();
+    const url = URL.createObjectURL(new Blob([rom], { type: 'application/octet-stream' }));
+    $('emuwrap').style.display = '';      // shown below the still preview
+    await loadEmulatorJS(url);            // fetches the mGBA core from CDN
+    btn.textContent = '▶ running below';
+  } catch (e) {
+    setBuild('emulator: ' + e.message);
+    $('emuwrap').style.display = 'none';
+    emuLoaded = false;
+    btn.disabled = false;
+    btn.textContent = '▶ preview on a Game Boy';
   }
 }
 
@@ -474,4 +533,5 @@ window.addEventListener('DOMContentLoaded', () => {
   $('fontsize').onchange = retypeset;
   $('covers').onchange = () => { retypeset(); };
   $('build').onclick = buildRom;
+  $('playbtn').onclick = launchEmulator;
 });
