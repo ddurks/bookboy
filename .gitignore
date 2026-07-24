@@ -10,13 +10,16 @@
 *.o
 *.elf
 
-# Generated web artifacts (built by `make wasm` / `make websync`, or CI).
-# The wasm module and packed data blobs are outputs, not sources.
+# The wasm module is rebuilt from source by `make wasm` (and by the deploy
+# workflow), so it stays out of the repo.
 /web/bookboy_core.js
 /web/bookboy_core.wasm
-/web/assets/stub.gba
-/web/assets/title.bin
-/web/assets/art.bin
+
+# NOTE: web/assets/{stub.gba,title.bin,art.bin} ARE committed. They're small,
+# non-copyrighted build outputs (runtime code + mascot art, no book text) that
+# the deploy syncs as-is; rebuild + commit them with `make websync` when
+# src/main.c or the art changes. Copyrighted data (books.bin, library.bin, full
+# ROMs) lives only under /build and /out above and is never committed.
 
 # macOS
 .DS_Store

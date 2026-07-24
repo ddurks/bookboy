@@ -9,11 +9,16 @@
 #include "bb_art.h"
 
 #ifndef BB_WASM
+/* vendored single-header libs: silence their warnings without relaxing -Werror
+ * on our own code (some stb helpers are unused under STBI_ONLY_PNG). */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
 #include "vendor/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "vendor/stb_image_write.h"
+#pragma GCC diagnostic pop
 
 #include <jpeglib.h>
 #endif

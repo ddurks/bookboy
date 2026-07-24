@@ -1,0 +1,3 @@
+# Default owner for everything — required reviewer on pull requests
+# once branch protection with "require review from Code Owners" is on.
+* @ddurks

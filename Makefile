@@ -26,7 +26,8 @@ JPEG_FLAGS ?= $(shell pkg-config --cflags --libs libjpeg 2>/dev/null || \
 BB_SRCS    := tools/bookbuild.c tools/bb_font.c tools/bb_epub.c tools/bb_hyphen.c tools/bb_image.c
 
 # ---- GBA rom: code stub + appended data (rompack) ----
-CFLAGS  := -mthumb -mthumb-interwork -mcpu=arm7tdmi -O2 -Wall -Wextra
+# CFLAGS_EXTRA lets CI add -Werror without baking it into local dev builds.
+CFLAGS  := -mthumb -mthumb-interwork -mcpu=arm7tdmi -O2 -Wall -Wextra $(CFLAGS_EXTRA)
 LDFLAGS := -specs=gba.specs -mthumb -mthumb-interwork
 
 DATA_BINS := $(addprefix build/data/,font.bin books.bin library.bin mini.bin title.bin art.bin)
@@ -90,9 +91,27 @@ websync: $(STUB) $(DATA_BINS)
 test: web/bookboy_core.js
 	node web/test_core.cjs
 
+# ---- lint ----
+# C: compile every host source with warnings-as-errors (the GBA stub is linted
+# in CI with `make out/stub.gba CFLAGS_EXTRA=-Werror`, which needs devkitARM).
+# Web: Prettier over the hand-written HTML/JS (generated files are ignored).
+lint-c:
+	$(HOSTCC) -O2 -Wall -Wextra -Werror -o /dev/null $(BB_SRCS) $(FT_FLAGS) $(JPEG_FLAGS) -lm
+	$(HOSTCC) -O2 -Wall -Wextra -Werror -o /dev/null tools/rompack.c
+
+lint-web:
+	npx --yes prettier --check web/index.html web/app.js web/test_core.cjs README.md
+
+lint: lint-c lint-web
+
+# Install the repo's git hooks (pre-commit runs lint + smoke test).
+hooks:
+	git config core.hooksPath .githooks
+	@echo "git hooks enabled — .githooks/pre-commit will run on commit"
+
 clean:
 	rm -rf build/*.o build/bookbuild build/rompack out
 	rm -f web/bookboy_core.js web/bookboy_core.wasm
 
-.PHONY: all data wasm websync test clean
+.PHONY: all data wasm websync test lint lint-c lint-web hooks clean
 .SECONDARY:

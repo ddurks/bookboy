@@ -1,0 +1,6 @@
+# generated / vendored — never reformat
+web/bookboy_core.js
+web/bookboy_core.wasm
+web/assets/
+build/
+out/

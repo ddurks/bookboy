@@ -1,0 +1,75 @@
+name: deploy web
+
+# Auto-deploy bookboy.drawvid.com when the web app or its wasm sources change on
+# main. The wasm core is rebuilt from source here; the small, non-copyrighted
+# stub/title/art binaries are committed and synced as-is. (The full ROM data —
+# books.bin/library.bin — is never in the repo, so CI never touches book text.)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'tools/**'
+      - 'Makefile'
+      - '.github/workflows/deploy-web.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+permissions:
+  id-token: write # assume the AWS role via OIDC
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  S3_BUCKET: bookboy.drawvid.com
+  CF_DISTRIBUTION: E16NJ1IMVM1Y6P
+
+jobs:
+  deploy:
+    name: build wasm + sync to S3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install host deps
+        run: sudo apt-get update && sudo apt-get install -y
+          libfreetype-dev libjpeg-dev pkg-config
+
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.64
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build wasm core
+        run: make wasm
+
+      - name: Smoke test before deploy
+        run: make test
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync web/ to S3
+        run: |
+          aws s3 sync web/ "s3://${S3_BUCKET}/" \
+            --exclude 'test_core.cjs' \
+            --exclude '.*' \
+            --exclude 'bookboy_core.wasm'
+          # wasm needs the right Content-Type for streaming instantiation
+          aws s3 cp web/bookboy_core.wasm "s3://${S3_BUCKET}/bookboy_core.wasm" \
+            --content-type application/wasm
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "$CF_DISTRIBUTION" --paths '/*'

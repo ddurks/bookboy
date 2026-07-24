@@ -1,0 +1,16 @@
+#!/bin/sh
+# bookboyadvance pre-commit: lint, and smoke-test the wasm core if it's built.
+# Enable with:  make hooks   (sets core.hooksPath to .githooks)
+set -e
+
+echo "pre-commit: linting (C warnings + Prettier)…"
+make lint
+
+if [ -f web/bookboy_core.js ]; then
+  echo "pre-commit: wasm smoke test…"
+  make test
+else
+  echo "pre-commit: skipping smoke test — run 'make wasm' to build the core first"
+fi
+
+echo "pre-commit: ok"

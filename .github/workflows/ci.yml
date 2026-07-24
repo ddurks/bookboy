@@ -6,6 +6,23 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    name: lint (C warnings + Prettier)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install host deps
+        run: sudo apt-get update && sudo apt-get install -y
+          libfreetype-dev libjpeg-dev pkg-config
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Lint (C -Werror + Prettier)
+        run: make lint
+
   host-and-wasm:
     name: host tools + wasm core
     runs-on: ubuntu-latest
@@ -46,10 +63,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build the ROM stub
+      - name: Build the ROM stub (warnings as errors)
         run: |
           export DEVKITPRO=/opt/devkitpro
-          make out/stub.gba
+          make out/stub.gba CFLAGS_EXTRA=-Werror
 
       - name: Stub sanity (non-empty, gbafix header)
         run: |
