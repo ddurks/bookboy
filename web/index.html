@@ -8,6 +8,7 @@
       name="description"
       content="Convert EPUBs into a Game Boy Advance e-reader ROM, entirely in your browser."
     />
+    <link rel="icon" type="image/png" href="assets/bookboy.png" />
     <style>
       @font-face {
         font-family: XCharter;
@@ -52,6 +53,7 @@
         color: var(--ink);
         font-family: XCharter, Charter, Georgia, serif;
         font-size: 18px;
+        text-transform: lowercase; /* lowercase everything for conformity */
       }
       img {
         image-rendering: pixelated;
@@ -63,20 +65,20 @@
         width: 100%;
         max-width: 300px;
         height: auto;
-        margin: 4px auto 2px;
+        margin: 8px auto 4px;
       }
       .sub {
         text-align: center;
         font-style: italic;
         color: var(--ink);
         opacity: 0.7;
-        margin: 0 0 10px;
+        margin: 0 0 20px;
         font-size: 15px;
       }
       .intro {
         text-align: center;
         color: var(--ink);
-        margin: 0 auto 22px;
+        margin: 0 auto 44px;
         max-width: 400px;
         font-size: 16px;
         line-height: 1.45;
@@ -138,7 +140,7 @@
         padding: 0 4%;
         cursor: pointer;
         transition: filter 0.12s;
-        font-weight: bold;
+        font-weight: normal; /* match the other book spines */
         font-size: clamp(10px, 3.2vw, 20px);
         color: var(--ink);
       }
@@ -152,7 +154,7 @@
         font-style: italic;
         color: var(--ink);
         opacity: 0.75;
-        margin: 8px 0;
+        margin: 16px 0;
         font-size: 15px;
       }
       /* collapse when empty so the drop and filters books touch on first load */
@@ -162,7 +164,7 @@
       /* the filters book ends the top stack: drop overlaps it from above, and
          its positive bottom margin is the break before the manual stack */
       #filters {
-        margin-bottom: 20px;
+        margin-bottom: 40px;
       }
 
       /* shelf of added books — app.js fills #shelf with .book rows (real book art,
@@ -229,7 +231,7 @@
         border: 1.5px solid var(--ink);
         border-radius: 5px;
         overflow: hidden;
-        margin: 10px auto 2px;
+        margin: 20px auto 4px;
         width: 100%;
       }
       #barfill {
@@ -244,7 +246,7 @@
       #summary {
         text-align: center;
         font-size: 13px;
-        margin-bottom: 4px;
+        margin-bottom: 8px;
       }
       #barlabel {
         opacity: 0.6;
@@ -253,18 +255,26 @@
         display: block;
         color: var(--ink);
         font-weight: bold;
-        margin-top: 2px;
+        margin-top: 4px;
       }
 
-      /* settings, one low spine: nowrap so the knobs stay on the book's line */
+      /* settings, one low spine: the three knobs spread evenly across the book,
+         centered, split by vertical ink dividers */
       .knobs {
         display: flex;
         flex-wrap: nowrap;
-        gap: clamp(7px, 2.5vw, 16px);
+        gap: 0;
         align-items: center;
-        justify-content: center;
+        justify-content: space-evenly;
+        width: 100%;
         font-size: clamp(12px, 3.4vw, 15px);
         white-space: nowrap;
+      }
+      .knobs > label {
+        padding: 5px clamp(6px, 2.4vw, 16px);
+      }
+      .knobs > label + label {
+        border-left: 1.5px solid var(--ink); /* divider between groups */
       }
       .knobs label {
         display: flex;
@@ -311,8 +321,8 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
-        margin: 16px 0;
+        gap: 16px;
+        margin: 32px 0;
       }
       .gbaframe {
         background: var(--ink);
@@ -360,7 +370,7 @@
       /* the live emulator: mGBA-wasm running the actual ROM, loaded on demand,
          set in a handheld-style bezel so it reads as a device screen */
       #emuwrap {
-        margin: 16px 0;
+        margin: 32px 0;
       }
       #embezel {
         max-width: 512px;
@@ -385,7 +395,7 @@
         text-align: center;
         font-size: 13px;
         opacity: 0.65;
-        margin: 8px auto 0;
+        margin: 16px auto 0;
         max-width: 400px;
         line-height: 1.5;
       }
@@ -403,8 +413,8 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
-        margin: 16px 0 4px;
+        gap: 20px;
+        margin: 32px 0 8px;
       }
       #build {
         font-family: inherit;
@@ -431,7 +441,7 @@
         text-transform: uppercase;
         opacity: 0.5;
         text-align: center;
-        margin: 28px 0 10px;
+        margin: 56px 0 20px;
         font-weight: normal;
       }
       details.manual {
@@ -441,7 +451,7 @@
       /* an open section pushes the next book down so its page shows between
          them (positive bottom margin cancels the touching overlap) */
       details.manual[open] {
-        margin-bottom: 10px;
+        margin-bottom: 20px;
         position: relative;
         z-index: 3;
       }
@@ -479,10 +489,11 @@
       details.manual .page {
         background: var(--paper);
         color: var(--ink);
-        border: 1.5px solid var(--ink);
-        border-radius: 0 0 9px 9px;
+        border: 5px solid var(--ink); /* match the books' thick outline */
+        border-top: none;
+        border-radius: 0 0 11px 11px;
         margin: -8px 3% 0;
-        padding: 14px 18px 16px;
+        padding: 12px 16px 14px;
         font-size: 16px;
         line-height: 1.5;
       }
@@ -496,6 +507,9 @@
       }
       .page a {
         color: #8a3324;
+      }
+      .page a.gh {
+        color: #3b6fb0; /* github link — blue */
       }
       .page table {
         border-collapse: collapse;
@@ -511,19 +525,19 @@
 
       footer {
         text-align: center;
-        margin: 28px 0 0;
+        margin: 56px 0 0;
       }
       #fullbody {
         width: 96px;
         height: 96px;
       }
-      .colophon {
+      .copyright {
         font-size: 12px;
         opacity: 0.5;
-        margin: 6px 0 24px;
+        margin: 12px 0 48px;
         line-height: 1.5;
       }
-      .colophon a {
+      .copyright a {
         color: inherit;
       }
     </style>
@@ -536,10 +550,10 @@
       width="240"
       height="160"
     />
-    <p class="sub">a lil' library for Game Boy Advance</p>
+    <p class="sub">a lil' e-reader for Game Boy Advance</p>
     <p class="intro">
-      Drop in EPUBs, get a Game Boy Advance ROM — typeset like a paperback,
-      built entirely in your browser.
+      drop in .epubs, download a .gba ROM.<br />
+      this page runs entirely in your browser.
     </p>
 
     <div id="drop" tabindex="0" role="button" aria-label="Add EPUB files">
@@ -559,37 +573,6 @@
           </select>
         </label>
         <label><input type="checkbox" id="covers" checked /> covers</label>
-        <label
-          >palette
-          <span class="pal">
-            <label title="paperback"
-              ><input type="radio" name="pal" value="0" checked /><span
-                style="
-                  background: linear-gradient(135deg, #f2ead7 50%, #2b2620 50%);
-                "
-              ></span
-            ></label>
-            <label title="high contrast"
-              ><input type="radio" name="pal" value="1" /><span
-                style="
-                  background: linear-gradient(135deg, #fffbf0 50%, #000 50%);
-                "
-              ></span
-            ></label>
-            <label title="bright"
-              ><input type="radio" name="pal" value="2" /><span
-                style="background: linear-gradient(135deg, #fff 50%, #333 50%)"
-              ></span
-            ></label>
-            <label title="night"
-              ><input type="radio" name="pal" value="3" /><span
-                style="
-                  background: linear-gradient(135deg, #101016 50%, #d8d4c8 50%);
-                "
-              ></span
-            ></label>
-          </span>
-        </label>
       </div>
     </div>
 
@@ -626,9 +609,10 @@
     <div id="emuwrap" style="display: none">
       <div id="embezel"><div id="emu"></div></div>
       <p class="emuhint" id="emuhint">
-        the real ROM, running here — <kbd>Enter</kbd> start,
-        <kbd>Z</kbd>/<kbd>X</kbd> A/B, arrows to move,
-        <kbd>Shift</kbd> select
+        the real ROM, running here — <kbd>Enter</kbd> start, <kbd>Z</kbd>/<kbd
+          >X</kbd
+        >
+        A/B, arrows to move, <kbd>Shift</kbd> select
       </p>
     </div>
 
@@ -637,32 +621,19 @@
       <div class="page">
         You need a <b>flashcart</b> — a cartridge with a microSD slot. Copy the
         .gba onto the card (FAT32, any folder) and pick it from the cart menu.
-        Your place saves automatically.
-        <table>
-          <tr>
-            <td><b>EZ-Flash&nbsp;Air</b></td>
-            <td>
-              ~$40, the budget pick (writes the ROM to the cart before playing)
-            </td>
-          </tr>
-          <tr>
-            <td><b>EverDrive GBA&nbsp;Mini</b></td>
-            <td>~$99, premium drag-and-drop</td>
-          </tr>
-        </table>
-        Buy from the makers' resellers to dodge clones. Any GBA plays it — the
-        backlit SP (AGS-101) has the nicest screen; the frontlit AGS-001 pairs
-        well with the high-contrast palette.
+        Your place saves automatically. <b>EZ-Flash&nbsp;Air</b> or
+        <b>EverDrive GBA&nbsp;Mini</b> are good options
       </div>
     </details>
 
     <details class="manual">
       <summary>Controls</summary>
       <div class="page">
-        In the reader: <kbd>A</kbd>/<kbd>→</kbd> page forward,
+        On the Game Boy Advance: <kbd>A</kbd>/<kbd>→</kbd> page forward,
         <kbd>←</kbd> back, <kbd>↑</kbd>/<kbd>↓</kbd> jump chapters,
-        <kbd>SELECT</kbd> cycles the four palettes, <kbd>B</kbd> returns to your
-        library. In the library, <kbd>↑</kbd>/<kbd>↓</kbd> browse the stack and
+        <kbd>SELECT</kbd> toggles the two palettes (paperback and night),
+        <kbd>B</kbd> returns to your library. In the library,
+        <kbd>↑</kbd>/<kbd>↓</kbd> browse the stack and
         <kbd>A</kbd> opens a book.
       </div>
     </details>
@@ -676,6 +647,23 @@
       </div>
     </details>
 
+    <details class="manual">
+      <summary>Source code</summary>
+      <div class="page">
+        <!-- TODO: point href at the public repo once it's published -->
+        View the source code and contribute on
+        <a class="gh" href="#">github</a>.
+      </div>
+    </details>
+
+    <details class="manual">
+      <summary>Details</summary>
+      <div class="page">
+        Typeset in <a href="https://ctan.org/pkg/xcharter">XCharter</a> · no
+        analytics, no uploads · your books stay yours.
+      </div>
+    </details>
+
     <footer>
       <img
         id="fullbody"
@@ -684,9 +672,8 @@
         width="100"
         height="100"
       />
-      <p class="colophon">
-        Typeset in <a href="https://ctan.org/pkg/xcharter">XCharter</a> · no
-        analytics, no uploads · your books stay yours
+      <p class="copyright">
+        © <a href="https://drawvidindustries.com">Drawvid Industries</a> LLC
       </p>
     </footer>
 

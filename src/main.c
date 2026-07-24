@@ -86,8 +86,6 @@ static const u8 CURVE_LIGHT[16] = {0, 7, 17, 29, 43, 58, 74, 91,
 
 static const Palette PRESETS[] = {
     {{0xF2, 0xEA, 0xD7}, {0x2B, 0x26, 0x20}, CURVE_LINEAR}, /* paperback */
-    {{0xFF, 0xFB, 0xF0}, {0x00, 0x00, 0x00}, CURVE_LINEAR}, /* high contrast */
-    {{0xFF, 0xFF, 0xFF}, {0x08, 0x08, 0x08}, CURVE_LIGHT},  /* bright */
     {{0x10, 0x10, 0x16}, {0xD8, 0xD4, 0xC8}, CURVE_LINEAR}, /* night */
 };
 #define NPRESETS (sizeof(PRESETS) / sizeof(PRESETS[0]))
@@ -589,6 +587,17 @@ static u16 keys_repeat(u16 mask)
  * then per book: u32 npages_guard, u32 page                       */
 static u32 last_book;
 
+/* library display order: the most-recently-read book sits at the top of the
+ * stack, then the rest follow in their natural (shelf) order. lib_top is the
+ * real index shown at display slot 0; disp_book maps a display slot -> real. */
+static u32 lib_top;
+static u32 disp_book(u32 d)
+{
+    if (d == 0)
+        return lib_top;
+    return d <= lib_top ? d - 1 : d;
+}
+
 static void sram_w(u32 off, u32 v, u32 n)
 {
     for (u32 i = 0; i < n; i++)
@@ -870,12 +879,13 @@ static void draw_stack3(u32 cursor, int with_selected, s32 drop)
 {
     canvas_clear();
     for (s32 k = STACK_DOWN; k >= -STACK_UP; k--) {
-        s32 idx = (s32)cursor + k;
-        if (idx < 0 || idx >= (s32)L.nbooks)
+        s32 didx = (s32)cursor + k;
+        if (didx < 0 || didx >= (s32)L.nbooks)
             continue;
         if (k == 0 && !with_selected)
             continue;
-        draw_spine_row2((u32)idx, k, k == 0 ? PAL_WHITE : spine_bank((u32)idx),
+        u32 idx = disp_book((u32)didx);
+        draw_spine_row2(idx, k, k == 0 ? PAL_WHITE : spine_bank(idx),
                         k < 0 ? drop : 0);
     }
 }
@@ -899,7 +909,8 @@ static void speak_info(u32 book)
     e = fmt_u32(e, book_pct(book));
     *e++ = '%'; *e = 0;
     blit_pal_base = PAL_WHITE;
-    draw_ascii(info, AR_SPEAK_X + 14, AR_SPEAK_Y + 3 + F.ascent, 0);
+    /* +5 centers the ink in the bubble, matching the spine baseline offset */
+    draw_ascii(info, AR_SPEAK_X + 14, AR_SPEAK_Y + 5 + F.ascent, 0);
     blit_pal_base = 0;
 }
 
@@ -914,7 +925,9 @@ static void anim_wait(u32 frames)
 /* returns selected book, or -1 if B pressed (back to title) */
 static int library(void)
 {
-    u32 cursor = last_book < L.nbooks ? last_book : 0;
+    /* most-recent book at the top of the stack; start the cursor on it */
+    lib_top = last_book < L.nbooks ? last_book : 0;
+    u32 cursor = 0;
     u32 up_t = 0, down_t = 0;
     for (;;) {
         /* browse */
@@ -957,7 +970,7 @@ static int library(void)
         }
         /* grab animation: frames 1-2 reach (book still in stack),
          * 3-5 the frame art carries the book */
-        book_init(cursor);          /* for chapter count in the bubble */
+        book_init(disp_book(cursor)); /* for chapter count in the bubble */
         /* frame 0 = the idle hands rising, then the four grab poses */
         static const u8 ANIM[5] = {ART_HANDS, ART_GRAB1, ART_GRAB2,
                                    ART_GRAB3, ART_GRAB4};
@@ -972,21 +985,21 @@ static int library(void)
         static const u8 DROPS[4] = {11, AR_PITCH, AR_PITCH - 3, AR_PITCH};
         for (u32 d = 0; d < 4; d++) {
             draw_stack3(cursor, 0, DROPS[d]);
-            show_held_book(lib_cover2_off(cursor));
+            show_held_book(lib_cover2_off(disp_book(cursor)));
             present();
             anim_wait(2);
         }
         anim_wait(4);
         draw_stack3(cursor, 0, AR_PITCH);
-        show_held_book(lib_cover2_off(cursor));
-        speak_info(cursor);
+        show_held_book(lib_cover2_off(disp_book(cursor)));
+        speak_info(disp_book(cursor));
         present();
         for (;;) {
             vsync();
             keys_poll();
             u16 hit = keys_hit();
             if (hit & (KEY_A | KEY_START))
-                return (int)cursor; /* open the reader */
+                return (int)disp_book(cursor); /* open the reader */
             if (hit & KEY_B)
                 break;              /* put the book back */
         }

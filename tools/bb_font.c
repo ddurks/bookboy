@@ -424,7 +424,9 @@ void font_build(Font *f, int px, double gamma, const u32 *charset, int n)
         }
     f->ascent = -top;
     f->descent = bot;
-    f->line_height = f->ascent + f->descent + 2;
+    /* 1px inter-line leading. At 14px this makes line_height 16, which fits 9
+     * body lines on the 160px screen; 2px left only 8 with an awkward gap. */
+    f->line_height = f->ascent + f->descent + 1;
     f->space_fp = f->g[0][font_index(f, ' ')].adv_fp;
 }
 

@@ -781,8 +781,10 @@ static void build_codepage(void)
             continue;
         if (!charter_has_glyph(c)) {
             dropped_chars += cp_counts[c];
+#ifndef BB_WASM
             fprintf(stderr, "  no glyph for U+%04X (x%llu) -> '?'\n", c,
                     (unsigned long long)cp_counts[c]);
+#endif
             continue;
         }
         cands[nc].cp = c;
@@ -1138,7 +1140,8 @@ static void rm_rf(const char *path)
 
 #define ROM_LIMIT (32 * 1024 * 1024)
 #define COVER_BYTES (SCREEN_W * SCREEN_H * 2)
-#define TITLE_MAX_PX 150            /* fits the narrowest book spine */
+#define TITLE_MAX_PX 168            /* uses more of the spine; the % badge,
+                                       when present, draws over the tail */
 
 typedef struct {
     char epub[700];
@@ -1156,7 +1159,7 @@ typedef struct {
     u8 enc_title[80];
     int enc_len;
     long cost;
-    int selected, forced;
+    int selected, forced, excluded;
     u32 book_off, cover_off, cover2_off;   /* filled writing books.bin */
 } BookRec;
 
@@ -1373,6 +1376,7 @@ int main(int argc, char **argv)
     snprintf(books_dir, sizeof(books_dir), "%s",
              getenv("BOOKS_DIR") ? getenv("BOOKS_DIR") : "books");
     const char *force_titles = getenv("BB_FORCE");   /* keep-first substrings */
+    const char *excl_titles = getenv("BB_EXCLUDE");  /* drop-these substrings */
     int preview_book = getenv("BB_PREVIEW") != NULL; /* render sample pages */
 
     char pbuf[1100];
@@ -1515,6 +1519,22 @@ int main(int argc, char **argv)
                 if (nl && title_contains(&r->meta, needle))
                     r->forced = 1;
             }
+        /* BB_EXCLUDE: comma-separated substrings to drop outright (wins over
+         * BB_FORCE). For pruning textbooks or corrupt-titled scans. */
+        r->excluded = 0;
+        if (excl_titles)
+            for (const char *t = excl_titles; *t; ) {
+                char needle[128];
+                int nl = 0;
+                while (*t && *t != ',' && nl < 127)
+                    needle[nl++] = (char)tolower((unsigned char)*t++);
+                needle[nl] = 0;
+                while (*t == ',') t++;
+                if (nl && title_contains(&r->meta, needle))
+                    r->excluded = 1;
+            }
+        if (r->excluded)
+            r->forced = 0;
         r->cost = (long)((r->blob_size + 3) & ~3ul) +
                   (r->cover ? COVER_BYTES : 0) + r->cover2_len + 96;
 
@@ -1611,7 +1631,7 @@ int main(int argc, char **argv)
     for (;;) {                          /* then smallest-first */
         int best = -1;
         for (int i = 0; i < nrecs; i++)
-            if (!recs[i].selected &&
+            if (!recs[i].selected && !recs[i].excluded &&
                 (best < 0 || recs[i].cost < recs[best].cost))
                 best = i;
         if (best < 0 || used + recs[best].cost > budget)

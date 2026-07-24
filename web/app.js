@@ -414,8 +414,7 @@ async function assembleRom() {
   dv.setUint32(tableAt + 8, 1, true);
   for (let i = 0; i < 5; i++) dv.setUint32(tableAt + 12 + 4 * i, offs[i], true);
   dv.setUint32(tableAt + 36, offs[5], true);   // art blob
-  const pal = parseInt(document.querySelector('input[name=pal]:checked').value, 10);
-  dv.setUint32(tableAt + 32, pal + 1, true);   // default palette (1-based)
+  dv.setUint32(tableAt + 32, 1, true);   // default palette: paperback (1-based)
   for (let i = 0; i < blobs.length; i++)
     rom.set(blobs[i], tableAt + offs[i]);
   return { rom, romSize };
@@ -453,6 +452,7 @@ function loadEmulatorJS(gameUrl) {
   return new Promise((resolve, reject) => {
     window.EJS_player = '#emu';
     window.EJS_core = 'gba';
+    window.EJS_gameID = 'bookboy';   // quiets EJS's "gameId not set" warning
     window.EJS_gameUrl = gameUrl;
     window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
     window.EJS_startOnLoaded = true;
