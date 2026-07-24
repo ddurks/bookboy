@@ -161,7 +161,6 @@ void to_rgb555(const ImgRGB *img, u8 *out);
 void write_png_2x(const char *path, const ImgRGB *img);
 void build_title_bin(const char *png_path, const char *out_path,
                      const char *preview_path);
-u8 *cover_screen_raw(const char *img_path);   /* 240x160 RGB555 or NULL */
 u8 *cover_screen_from_rgb(const u8 *rgb, int w, int h);
 u8 *sprite_encode(const u8 *rgba, int W, int H, int *out_len);
 void quantize_median_cut(const u8 *rgb, int npx, int ncolors, u16 *pal_out,

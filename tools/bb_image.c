@@ -507,18 +507,6 @@ u8 *load_cover_rgb_pub(const char *path, int *w, int *h)
 {
     return load_cover_rgb(path, w, h);
 }
-
-/* native wrapper: decode an image file, then the shared RGB core */
-u8 *cover_screen_raw(const char *img_path)
-{
-    int cw0, ch0;
-    u8 *cov = load_cover_rgb(img_path, &cw0, &ch0);
-    if (!cov)
-        return NULL;
-    u8 *raw = cover_screen_from_rgb(cov, cw0, ch0);
-    free(cov);
-    return raw;
-}
 #endif /* !BB_WASM */
 
 /* ---------------- art sprites (level + alpha) ---------------- */

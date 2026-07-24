@@ -494,6 +494,10 @@ async function launchEmulator() {
 async function addFiles(files) {
   const eps = [...files].filter((f) => /\.epub$/i.test(f.name));
   if (!eps.length) return;
+  if (typeof DecompressionStream === 'undefined') {
+    setStatus('your browser is too old to unzip EPUBs — try a recent Chrome, Edge, or Safari 16.4+');
+    return;
+  }
   await initCore();
   for (const f of eps) {
     setStatus(`reading ${f.name}…`);

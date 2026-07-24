@@ -357,17 +357,28 @@
         opacity: 0.5;
         cursor: default;
       }
-      /* the live emulator: mGBA-wasm running the actual ROM, loaded on demand */
+      /* the live emulator: mGBA-wasm running the actual ROM, loaded on demand,
+         set in a handheld-style bezel so it reads as a device screen */
       #emuwrap {
         margin: 16px 0;
       }
+      #embezel {
+        max-width: 512px;
+        margin: 0 auto;
+        padding: 16px 20px;
+        background: #3a3a45;
+        border: 2px solid var(--ink);
+        border-radius: 16px;
+        box-shadow:
+          0 5px 16px rgba(43, 38, 32, 0.28),
+          inset 0 2px 3px rgba(255, 255, 255, 0.08);
+      }
       #emu {
         width: 100%;
-        max-width: 480px;
         aspect-ratio: 3 / 2;
-        margin: 0 auto;
         background: var(--ink);
-        border-radius: 8px;
+        border: 2px solid #17161a;
+        border-radius: 5px;
         overflow: hidden;
       }
       .emuhint {
@@ -613,7 +624,7 @@
     </div>
 
     <div id="emuwrap" style="display: none">
-      <div id="emu"></div>
+      <div id="embezel"><div id="emu"></div></div>
       <p class="emuhint" id="emuhint">
         the real ROM, running here — <kbd>Enter</kbd> start,
         <kbd>Z</kbd>/<kbd>X</kbd> A/B, arrows to move,

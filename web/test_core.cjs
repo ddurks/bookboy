@@ -4,7 +4,7 @@ const path = require('path');
 const createBookboyCore = require('./bookboy_core.js');
 
 const ROOT = path.join(__dirname, '..');
-const XC = path.join(ROOT, 'build/xcharter/xcharter/opentype');
+const XC = path.join(ROOT, 'web/assets'); // bundled XCharter-{Roman,Italic,Bold}.otf
 
 const K = { BODY: 0, TITLE: 1, SUBTITLE: 2, BYLINE: 3, PART: 4, PARTSUB: 5,
             DISPLAY: 6 };

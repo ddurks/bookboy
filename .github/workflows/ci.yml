@@ -1,0 +1,57 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  host-and-wasm:
+    name: host tools + wasm core
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install host deps
+        run: sudo apt-get update && sudo apt-get install -y
+          libfreetype-dev libjpeg-dev pkg-config
+
+      - name: Compile host tools
+        run: |
+          make build/bookbuild
+          make build/rompack
+
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.64
+
+      - name: Build wasm core
+        run: make wasm
+
+      - name: Smoke test (wasm typesetting core)
+        run: make test
+
+  gba-stub:
+    name: GBA code stub
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the ROM stub
+        run: |
+          export DEVKITPRO=/opt/devkitpro
+          make out/stub.gba
+
+      - name: Stub sanity (non-empty, gbafix header)
+        run: |
+          test -s out/stub.gba
+          # the Nintendo logo checksum byte the header carries at 0x9C..0xBD
+          # is patched by gbafix; a bare objcopy binary would be all-zero there
+          python3 - <<'PY'
+          d = open('out/stub.gba','rb').read()
+          assert len(d) > 512, 'stub too small'
+          assert any(d[0xA0:0xAC]), 'game title not set — gbafix did not run'
+          print('stub ok:', len(d), 'bytes')
+          PY

@@ -370,6 +370,23 @@ static void parse_html(const char *html, long len, PState *ps)
         name[k] = 0;
         if (closing) {
             handle_endtag(ps, name);
+        } else if (!strcmp(name, "style") || !strcmp(name, "script")) {
+            /* skip raw text content (matches the JS DOMParser, which never
+             * surfaces <style>/<script> text) */
+            char close[10];
+            snprintf(close, sizeof(close), "</%s", name);
+            const char *end = NULL;
+            for (const char *p = gt + 1; p <= html + len - (long)strlen(close);
+                 p++)
+                if ((p[0] | 0) == '<' &&
+                    !strncmp(p + 1, close + 1, strlen(close) - 1)) {
+                    end = p;
+                    break;
+                }
+            if (!end) break;
+            const char *egt = memchr(end, '>', (size_t)(html + len - end));
+            i = egt ? (egt - html) + 1 : len;
+            continue;
         } else {
             handle_starttag(ps, name, t, taglen);
             if (selfclose)
@@ -417,6 +434,23 @@ static Run clean_run(const Run *r)
     free(tmp);
     out.len = n;
     return out;
+}
+
+/* case-insensitive substring (strcasestr isn't in Emscripten's libc) */
+static const char *ci_strstr(const char *hay, const char *needle)
+{
+    size_t nl = strlen(needle);
+    if (!nl)
+        return hay;
+    for (; *hay; hay++) {
+        size_t k = 0;
+        while (k < nl && hay[k] &&
+               (hay[k] | 0x20) == (needle[k] | 0x20))
+            k++;
+        if (k == nl)
+            return hay;
+    }
+    return NULL;
 }
 
 /* ---------------- OPF / container ---------------- */
@@ -690,8 +724,9 @@ int epub_cover_path(const char *epub_dir, char *out, int outsz)
     for (int i = 0; i < items.n && !pick; i++) {
         const Item *it = &items.v[i];
         const char *h = it->href;
-        int img = strstr(h, ".jpg") || strstr(h, ".jpeg") || strstr(h, ".png");
-        if (img && (strstr(h, "cover") || strstr(it->id, "cover")))
+        int img = ci_strstr(h, ".jpg") || ci_strstr(h, ".jpeg") ||
+                  ci_strstr(h, ".png");
+        if (img && (ci_strstr(h, "cover") || ci_strstr(it->id, "cover")))
             pick = it;
     }
     int ok = 0;
