@@ -287,6 +287,7 @@ async function retypeset() {
     setStatus('error: ' + e.message);
   } finally {
     busy = false;
+    updateBar();          // re-enable the build button now that busy is clear
   }
 }
 
@@ -444,6 +445,9 @@ async function addFiles(files) {
 window.addEventListener('DOMContentLoaded', () => {
   const dz = $('drop');
   dz.onclick = () => $('file').click();
+  dz.onkeydown = (e) => {           // keyboard access (role=button)
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('file').click(); }
+  };
   $('file').onchange = (e) => addFiles(e.target.files);
   dz.ondragover = (e) => { e.preventDefault(); dz.classList.add('hot'); };
   dz.ondragleave = () => dz.classList.remove('hot');
