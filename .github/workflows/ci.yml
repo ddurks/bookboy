@@ -29,6 +29,13 @@ jobs:
       - name: Build wasm core
         run: make wasm
 
+      # Use a real Node for the smoke test — the emsdk-bundled node can lose its
+      # executable bit on cache restore, which surfaces as "node: Permission denied".
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Smoke test (wasm typesetting core)
         run: make test
 
