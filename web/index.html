@@ -27,66 +27,59 @@ body {
 }
 img { image-rendering: pixelated; }
 
-/* the shelf logo */
-.logo { display: block; width: 100%; max-width: 400px; margin: 8px auto 4px;
-  border: 2px solid var(--ink); border-radius: 4px; }
+/* the shelf logo — native art, aspect preserved, no frame */
+.logo { display: block; width: 100%; max-width: 300px; height: auto;
+  margin: 4px auto 2px; }
 .sub { text-align: center; font-style: italic; color: var(--ink); opacity: .7;
-  margin: 0 0 22px; font-size: 15px; }
+  margin: 0 0 20px; font-size: 15px; }
 
-/* a book spine: the unit the whole page is built from, matching the .gba
-   library stack — grey face, ink outline, rounded ends, under-shadow. */
+/* every "book" is the real book.png art. The element carries the art's exact
+   204:24 aspect so background-size:100% 100% scales it without stretching,
+   and a small negative margin overlaps the outlines so the stack touches. */
 .spine {
   position: relative; display: flex; align-items: center;
-  min-height: var(--spine-h); margin: 0 auto 5px; padding: 0 18px;
-  color: var(--ink); background: var(--s1);
-  border: 1.5px solid var(--ink); border-radius: 9px;
-  box-shadow: inset 0 -4px 0 rgba(43,38,32,.14),
-              inset 4px 0 0 rgba(43,38,32,.08),
-              inset -4px 0 0 rgba(43,38,32,.08);
-  font-size: 19px; letter-spacing: .3px; cursor: default;
-  width: 96%;
+  aspect-ratio: 204 / 24; margin: 0 auto -0.35%; padding: 0 4.5%;
+  color: var(--ink); background: url(assets/spine_1.png) center/100% 100% no-repeat;
+  font-size: clamp(15px, 4.2vw, 21px); letter-spacing: .2px; cursor: default;
+  width: 100%;
 }
-.spine:nth-of-type(4n+1) { background: var(--s1); width: 100%; }
-.spine:nth-of-type(4n+2) { background: var(--s2); width: 94%; }
-.spine:nth-of-type(4n+3) { background: var(--s3); width: 98%; }
-.spine:nth-of-type(4n)   { background: var(--s4); width: 92%; }
-.spine .meta { margin-left: auto; opacity: .6; font-size: 14px;
+.spine:nth-of-type(4n+1) { background-image: url(assets/spine_1.png); width: 100%; }
+.spine:nth-of-type(4n+2) { background-image: url(assets/spine_2.png); width: 96%; }
+.spine:nth-of-type(4n+3) { background-image: url(assets/spine_3.png); width: 99%; }
+.spine:nth-of-type(4n)   { background-image: url(assets/spine_4.png); width: 94%; }
+.spine .meta { margin-left: auto; opacity: .6; font-size: .72em;
   white-space: nowrap; padding-left: 12px; }
 
-/* the drop zone: an extra-tall white book standing on the shelf */
+/* the drop zone: a big white book (single line so the art stays unstretched) */
 #drop {
-  min-height: 132px; background: var(--white);
-  border: 2px solid var(--ink); border-radius: 11px;
-  box-shadow: inset 0 -6px 0 rgba(43,38,32,.12),
-              inset 6px 0 0 rgba(43,38,32,.06),
-              inset -6px 0 0 rgba(43,38,32,.06);
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; text-align: center; cursor: pointer;
-  margin: 0 auto 14px; width: 100%; transition: background .12s;
+  aspect-ratio: 204 / 24; width: 100%; margin: 0 auto 4px;
+  background: url(assets/spine_w.png) center/100% 100% no-repeat;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; cursor: pointer; transition: filter .12s;
+  font-weight: bold; font-size: clamp(18px, 5vw, 26px); color: var(--ink);
 }
-#drop:hover, #drop.hot { background: #FBF6EA; }
-#drop b { font-size: 24px; }
-#drop small { color: var(--ink); opacity: .6; font-size: 14px; margin-top: 4px;
-  max-width: 300px; }
+#drop:hover, #drop.hot { filter: brightness(1.04); }
+.drophint { text-align: center; color: var(--ink); opacity: .6; font-size: 14px;
+  margin: 0 0 14px; }
 
 #status { min-height: 22px; text-align: center; font-style: italic;
   color: var(--ink); opacity: .75; margin: 4px 0 12px; font-size: 15px; }
 
-/* shelf of added books — app.js fills #shelf with .book rows */
+/* shelf of added books — app.js fills #shelf with .book rows (real book art,
+   touching, tinted per position, white when selected) */
 .book { position: relative; display: flex; align-items: center;
-  min-height: var(--spine-h); margin: 0 auto 5px; padding: 0 16px;
-  color: var(--ink); border: 1.5px solid var(--ink); border-radius: 9px;
-  box-shadow: inset 0 -4px 0 rgba(43,38,32,.14);
-  font-size: 18px; width: 100%; }
-.book:nth-child(4n+1) { background: var(--s1); }
-.book:nth-child(4n+2) { background: var(--s2); width: 95%; }
-.book:nth-child(4n+3) { background: var(--s3); width: 98%; }
-.book:nth-child(4n)   { background: var(--s4); width: 93%; }
-.book.sel { background: var(--white); box-shadow: inset 0 -4px 0 rgba(43,38,32,.14), 0 0 0 2px var(--ink); }
+  aspect-ratio: 204 / 24; margin: 0 auto -0.35%; padding: 0 4.5%;
+  color: var(--ink); background: center/100% 100% no-repeat;
+  background-image: url(assets/spine_1.png);
+  font-size: clamp(14px, 4vw, 18px); width: 100%; }
+.book:nth-child(4n+2) { background-image: url(assets/spine_2.png); width: 96%; }
+.book:nth-child(4n+3) { background-image: url(assets/spine_3.png); width: 99%; }
+.book:nth-child(4n)   { background-image: url(assets/spine_4.png); width: 94%; }
+.book.sel { background-image: url(assets/spine_w.png); z-index: 2; }
 .btitle { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bmeta { opacity: .6; font-size: 14px; white-space: nowrap; padding-left: 10px; }
+.bmeta { opacity: .6; font-size: .78em; white-space: nowrap; padding-left: 10px; }
 .del { border: none; background: none; color: var(--ink); opacity: .5;
-  font-size: 20px; cursor: pointer; line-height: 1; padding: 0 0 0 8px; }
+  font-size: 1.1em; cursor: pointer; line-height: 1; padding: 0 0 0 8px; }
 .del:hover { opacity: 1; }
 
 /* capacity: a thin shelf-plank gauge */
@@ -129,19 +122,25 @@ select { font-family: inherit; font-size: 14px; background: var(--paper);
   box-shadow: inset 0 -5px 0 rgba(0,0,0,.25); }
 #build:disabled { opacity: .35; cursor: default; }
 
-/* guide spines link to expandable book "pages" */
+/* guide spines: the book art sits on the <summary>; the opened "page" is a
+   cream leaf below it */
 h2.shelf-label { font-size: 15px; letter-spacing: 2px; text-transform: uppercase;
-  opacity: .5; text-align: center; margin: 30px 0 10px; font-weight: normal; }
-details.spine { display: block; padding: 0; cursor: pointer; }
-details.spine > summary { list-style: none; display: flex; align-items: center;
-  min-height: var(--spine-h); padding: 0 18px; font-size: 19px; }
-details.spine > summary::-webkit-details-marker { display: none; }
-details.spine > summary::after { content: "＋"; margin-left: auto; opacity: .5; }
-details.spine[open] > summary::after { content: "－"; }
-details.spine .page { background: var(--paper); color: var(--ink);
-  border: 1.5px solid var(--ink); border-top: none;
-  border-radius: 0 0 9px 9px; margin: -3px 8px 5px; padding: 12px 18px 16px;
-  font-size: 16px; line-height: 1.5; cursor: auto; }
+  opacity: .5; text-align: center; margin: 28px 0 10px; font-weight: normal; }
+details.manual { margin: 0 auto -0.35%; width: 98%; }
+details.manual:nth-of-type(3n+1) summary { background-image: url(assets/spine_2.png); }
+details.manual:nth-of-type(3n+2) summary { background-image: url(assets/spine_3.png); }
+details.manual:nth-of-type(3n)   summary { background-image: url(assets/spine_4.png); }
+details.manual > summary { list-style: none; display: flex; align-items: center;
+  aspect-ratio: 204 / 24; padding: 0 4.5%; cursor: pointer;
+  background: url(assets/spine_2.png) center/100% 100% no-repeat;
+  font-size: clamp(15px, 4.2vw, 19px); color: var(--ink); }
+details.manual > summary::-webkit-details-marker { display: none; }
+details.manual > summary::after { content: "＋"; margin-left: auto; opacity: .5; }
+details.manual[open] > summary::after { content: "－"; }
+details.manual .page { background: var(--paper); color: var(--ink);
+  border: 1.5px solid var(--ink); border-radius: 0 0 9px 9px;
+  margin: -4% 3% 3%; padding: 14px 18px 16px;
+  font-size: 16px; line-height: 1.5; }
 .page kbd { background: var(--s1); border: 1px solid var(--ink); border-radius: 4px;
   padding: 0 5px; font-family: inherit; font-size: 14px; }
 .page a { color: #8a3324; }
@@ -159,10 +158,10 @@ footer { text-align: center; margin: 28px 0 0; }
   <p class="sub">a paperback library for your Game Boy Advance</p>
 
   <div id="drop" tabindex="0" role="button" aria-label="Add EPUB files">
-    <b>drop your .epub here</b>
-    <small>or tap to choose — add a few to build a whole library</small>
+    drop your .epub here
     <input type="file" id="file" accept=".epub" multiple hidden>
   </div>
+  <p class="drophint">or tap to choose — add a few to build a whole library</p>
   <div id="status" role="status" aria-live="polite"></div>
 
   <div id="shelfwrap" style="display:none">
@@ -207,7 +206,7 @@ footer { text-align: center; margin: 28px 0 0; }
 
   <h2 class="shelf-label">the manual</h2>
 
-  <details class="spine">
+  <details class="manual">
     <summary>Getting it onto a Game Boy</summary>
     <div class="page">
       You need a <b>flashcart</b> — a cartridge with a microSD slot. Copy the
@@ -226,7 +225,7 @@ footer { text-align: center; margin: 28px 0 0; }
     </div>
   </details>
 
-  <details class="spine">
+  <details class="manual">
     <summary>No Game Boy?</summary>
     <div class="page">
       It runs perfectly in an emulator: <a href="https://mgba.io">mGBA</a> on
@@ -234,7 +233,7 @@ footer { text-align: center; margin: 28px 0 0; }
     </div>
   </details>
 
-  <details class="spine">
+  <details class="manual">
     <summary>How it works</summary>
     <div class="page">
       Everything happens in your browser — your books never leave your machine.
