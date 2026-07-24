@@ -59,6 +59,16 @@
         image-rendering: pixelated;
       }
 
+      /* the Game Boy Advance boot banner, flush with the top of the page and
+         capped so it isn't huge on desktop */
+      .banner {
+        display: block;
+        width: 100%;
+        max-width: 450px;
+        height: auto;
+        margin: -20px auto 10px; /* -20px cancels the body's top padding → flush */
+      }
+
       /* the shelf logo — native art, aspect preserved, no frame */
       .logo {
         display: block;
@@ -66,6 +76,21 @@
         max-width: 300px;
         height: auto;
         margin: 8px auto 4px;
+      }
+
+      /* four device screenshots, 2x2, filling the width with even gaps that
+         match the page's side margin */
+      .shots {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin: 6px auto 28px;
+      }
+      .shots img {
+        display: block;
+        width: 100%;
+        height: auto;
+        image-rendering: auto; /* smooth downscale of the hi-res captures */
       }
       .sub {
         text-align: center;
@@ -544,6 +569,11 @@
   </head>
   <body>
     <img
+      class="banner"
+      src="assets/gameboyadvance.svg"
+      alt="Game Boy Advance"
+    />
+    <img
       class="logo"
       src="assets/logo.png"
       alt="BOOKBOY ADVANCE"
@@ -551,6 +581,11 @@
       height="160"
     />
     <p class="sub">a lil' e-reader for Game Boy Advance</p>
+    <div class="shots">
+      <img src="assets/screenshots/list.png" alt="library book list" />
+      <img src="assets/screenshots/book.png" alt="a book selected" />
+      <img src="assets/screenshots/words.png" alt="a page from a book" />
+    </div>
     <p class="intro">
       drop in .epubs, download a .gba ROM.<br />
       this page runs entirely in your browser.
@@ -665,7 +700,7 @@
         height="100"
       />
       <p class="copyright">
-        © <a href="https://drawvidindustries.com">Drawvid Industries</a> LLC
+        © <a href="https://drawvidindustries.com">Drawvid Industries</a>
       </p>
     </footer>
 

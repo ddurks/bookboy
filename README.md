@@ -2,6 +2,12 @@
   <img src="web/assets/logo.png" alt="bookboy advance" width="360">
 </p>
 
+<p align="center">
+  <img src="assets/screenshots/list.png" alt="library book list" width="31%">
+  <img src="assets/screenshots/book.png" alt="a book selected" width="31%">
+  <img src="assets/screenshots/words.png" alt="a page from a book" width="31%">
+</p>
+
 # bookboyadvance
 
 Turn EPUBs into a paperback-style e-reader ROM for the Game Boy Advance.
