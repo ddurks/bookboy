@@ -71,10 +71,10 @@
       /* the GBA wordmark, dropped inline into the tagline where the words
          "game boy advance" would otherwise be */
       .banner {
-        height: 1.7em;
+        height: 1.35em;
         width: auto;
         vertical-align: middle;
-        margin-left: 3px;
+        margin-left: 4px;
         position: relative;
         top: -1px;
       }
@@ -179,27 +179,32 @@
         font-size: clamp(10px, 3.2vw, 20px);
         color: var(--ink);
       }
-      /* dashed inner outline — the classic "drop files here" affordance, kept
-         well inside the book's thick outline so it stays visible */
-      #drop::before {
-        content: '';
-        position: absolute;
-        inset: 26% 4.5%;
-        border: 2px dashed var(--ink);
-        border-radius: 6px;
-        opacity: 0.5;
-        pointer-events: none;
+      /* the click/tap target, styled as a raised button but kept inside the
+         book spine; on drag-over its border goes dashed (drop affordance) */
+      .dropcta {
+        display: inline-block;
+        color: var(--ink);
+        background: var(--paper);
+        border: 2px solid var(--ink);
+        border-radius: 7px;
+        padding: 3px 16px;
+        box-shadow: 0 2.5px 0 rgba(43, 38, 32, 0.4);
+        white-space: nowrap;
+        transition:
+          transform 0.08s,
+          box-shadow 0.08s,
+          background 0.12s;
       }
-      #drop:hover,
-      #drop.hot {
-        filter: brightness(1.04);
+      #drop:hover .dropcta {
+        background: #fffdf7;
       }
-      #drop:active {
-        transform: translateY(1px);
-        filter: brightness(0.97);
+      #drop.hot .dropcta {
+        background: #fffdf7;
+        border-style: dashed;
       }
-      #drop.hot::before {
-        opacity: 0.85;
+      #drop:active .dropcta {
+        transform: translateY(2px);
+        box-shadow: 0 0.5px 0 rgba(43, 38, 32, 0.4);
       }
 
       #status {
