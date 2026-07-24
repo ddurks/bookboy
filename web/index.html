@@ -128,7 +128,7 @@
       #drop {
         aspect-ratio: 204 / 24;
         width: 100%;
-        margin: 0 auto 14px;
+        margin: 0 auto -1.6%;
         background: url(assets/spine_w.png) center/100% 100% no-repeat;
         display: flex;
         align-items: center;
@@ -148,13 +148,21 @@
       }
 
       #status {
-        min-height: 22px;
         text-align: center;
         font-style: italic;
         color: var(--ink);
         opacity: 0.75;
-        margin: 4px 0 12px;
+        margin: 8px 0;
         font-size: 15px;
+      }
+      /* collapse when empty so the drop and filters books touch on first load */
+      #status:empty {
+        display: none;
+      }
+      /* the filters book ends the top stack: drop overlaps it from above, and
+         its positive bottom margin is the break before the manual stack */
+      #filters {
+        margin-bottom: 20px;
       }
 
       /* shelf of added books — app.js fills #shelf with .book rows (real book art,
@@ -477,7 +485,7 @@
     </div>
     <div id="status" role="status" aria-live="polite"></div>
 
-    <div class="spine" style="cursor: auto">
+    <div class="spine" id="filters" style="cursor: auto">
       <div class="knobs">
         <label
           >size
