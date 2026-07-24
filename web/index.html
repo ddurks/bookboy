@@ -31,7 +31,9 @@ img { image-rendering: pixelated; }
 .logo { display: block; width: 100%; max-width: 300px; height: auto;
   margin: 4px auto 2px; }
 .sub { text-align: center; font-style: italic; color: var(--ink); opacity: .7;
-  margin: 0 0 20px; font-size: 15px; }
+  margin: 0 0 10px; font-size: 15px; }
+.intro { text-align: center; color: var(--ink); margin: 0 auto 22px;
+  max-width: 400px; font-size: 16px; line-height: 1.45; }
 
 /* every "book" is the real book.png art. The element carries the art's exact
    204:24 aspect so background-size:100% 100% scales it without stretching,
@@ -156,6 +158,8 @@ footer { text-align: center; margin: 28px 0 0; }
 <body>
   <img class="logo" src="assets/logo.png" alt="BOOKBOY ADVANCE" width="240" height="160">
   <p class="sub">a paperback library for your Game Boy Advance</p>
+  <p class="intro">Drop in EPUBs, get a Game Boy Advance ROM — typeset like a
+    paperback, built entirely in your browser. Nothing is uploaded.</p>
 
   <div id="drop" tabindex="0" role="button" aria-label="Add EPUB files">
     drop your .epub here
@@ -163,12 +167,6 @@ footer { text-align: center; margin: 28px 0 0; }
   </div>
   <p class="drophint">or tap to choose — add a few to build a whole library</p>
   <div id="status" role="status" aria-live="polite"></div>
-
-  <div id="shelfwrap" style="display:none">
-    <div id="shelf"></div>
-    <div id="bar"><div id="barfill"></div></div>
-    <div id="barlabel"></div>
-  </div>
 
   <div class="spine" style="cursor:auto">
     <div class="knobs">
@@ -200,8 +198,14 @@ footer { text-align: center; margin: 28px 0 0; }
     </div>
   </div>
 
+  <div id="shelfwrap" style="display:none">
+    <div id="shelf"></div>
+    <div id="bar"><div id="barfill"></div></div>
+    <div id="barlabel"></div>
+  </div>
+
   <div id="buildrow" style="display:none">
-    <button id="build">Take it home ▾</button>
+    <button id="build">Download</button>
   </div>
 
   <h2 class="shelf-label">the manual</h2>
@@ -230,17 +234,6 @@ footer { text-align: center; margin: 28px 0 0; }
     <div class="page">
       It runs perfectly in an emulator: <a href="https://mgba.io">mGBA</a> on
       desktop, Delta on iOS, or Lemuroid on Android. Drop the .gba in and read.
-    </div>
-  </details>
-
-  <details class="manual">
-    <summary>How it works</summary>
-    <div class="page">
-      Everything happens in your browser — your books never leave your machine.
-      The page reads the EPUB, and a C typesetting engine compiled to
-      WebAssembly does the real work: justified type with kerning and
-      hyphenation, laid out once so the Game Boy just replays it. The same
-      engine builds the ROM and runs on the console.
     </div>
   </details>
 
