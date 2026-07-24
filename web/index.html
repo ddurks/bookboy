@@ -351,7 +351,6 @@
         border: 1.5px solid var(--ink);
         border-radius: 8px;
         padding: 6px 18px;
-        margin-top: 10px;
         cursor: pointer;
       }
       #playbtn:disabled {
@@ -391,7 +390,9 @@
       /* the download book — the tall standing tome you take home */
       #buildrow {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
         margin: 16px 0 4px;
       }
       #build {
@@ -595,7 +596,6 @@
         <span id="pageno">–</span>
         <button id="next" aria-label="next page">▶</button>
       </div>
-      <button id="playbtn">▶ preview on a Game Boy</button>
     </div>
 
     <div id="shelfwrap" style="display: none">
@@ -609,6 +609,7 @@
 
     <div id="buildrow" style="display: none">
       <button id="build">Download .gba</button>
+      <button id="playbtn">▶ preview on a Game Boy</button>
     </div>
 
     <div id="emuwrap" style="display: none">
