@@ -261,6 +261,7 @@ async function retypeset() {
   try {
     await initCore();
     setStatus('typesetting…');
+    setBuild('');                 // the built ROM (if any) is now stale
     await new Promise((r) => setTimeout(r, 20));  // let UI paint
     cc('bw_reset', null, [], []);
     for (const b of books) feedBook(b);
@@ -294,6 +295,9 @@ async function retypeset() {
 /* ---------------- UI ---------------- */
 function setStatus(msg) {
   $('status').textContent = msg;
+}
+function setBuild(msg) {          // build result, shown under the stack
+  $('buildmsg').textContent = msg;
 }
 
 function totalBytes() {
@@ -383,42 +387,48 @@ function part(which) {
 
 async function buildRom() {
   if (busy || !books.length) return;
-  setStatus('building ROM…');
-  const total = cc('bw_finalize', 'number', [], []);
-  if (total < 0) { setStatus('layout incomplete — try again'); return; }
-  const { stub, title, art } = await fetchAssets();
-  const blobs = [part(0), part(1), part(2), part(3), title, art];
+  setBuild('building ROM…');
+  try {
+    const total = cc('bw_finalize', 'number', [], []);
+    if (total < 0) { setBuild('layout incomplete — try again'); return; }
+    const { stub, title, art } = await fetchAssets();
+    const blobs = [part(0), part(1), part(2), part(3), title, art];
 
-  const tableAt = (stub.length + 255) & ~255;
-  const align4 = (n) => (n + 3) & ~3;
-  const offs = [];
-  let cur = 64;
-  for (const b of blobs) { offs.push(cur); cur += align4(b.length); }
-  const romSize = tableAt + cur;
-  if (romSize > ROM_LIMIT) { setStatus('ROM too large'); return; }
+    const tableAt = (stub.length + 255) & ~255;
+    const align4 = (n) => (n + 3) & ~3;
+    const offs = [];
+    let cur = 64;
+    for (const b of blobs) { offs.push(cur); cur += align4(b.length); }
+    const romSize = tableAt + cur;
+    if (romSize > ROM_LIMIT) { setBuild('ROM too large'); return; }
 
-  const rom = new Uint8Array(romSize);
-  rom.set(stub, 0);
-  const dv = new DataView(rom.buffer);
-  const M = 'BKBYDAT1';
-  for (let i = 0; i < 8; i++) rom[tableAt + i] = M.charCodeAt(i);
-  dv.setUint32(tableAt + 8, 1, true);
-  for (let i = 0; i < 5; i++) dv.setUint32(tableAt + 12 + 4 * i, offs[i], true);
-  dv.setUint32(tableAt + 36, offs[5], true);   // art blob
-  const pal = parseInt(document.querySelector('input[name=pal]:checked').value, 10);
-  dv.setUint32(tableAt + 32, pal + 1, true);   // default palette (1-based)
-  for (let i = 0; i < blobs.length; i++)
-    rom.set(blobs[i], tableAt + offs[i]);
+    const rom = new Uint8Array(romSize);
+    rom.set(stub, 0);
+    const dv = new DataView(rom.buffer);
+    const M = 'BKBYDAT1';
+    for (let i = 0; i < 8; i++) rom[tableAt + i] = M.charCodeAt(i);
+    dv.setUint32(tableAt + 8, 1, true);
+    for (let i = 0; i < 5; i++) dv.setUint32(tableAt + 12 + 4 * i, offs[i], true);
+    dv.setUint32(tableAt + 36, offs[5], true);   // art blob
+    const pal = parseInt(document.querySelector('input[name=pal]:checked').value, 10);
+    dv.setUint32(tableAt + 32, pal + 1, true);   // default palette (1-based)
+    for (let i = 0; i < blobs.length; i++)
+      rom.set(blobs[i], tableAt + offs[i]);
 
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([rom], { type: 'application/octet-stream' }));
-  a.download = books.length === 1
-    ? books[0].title.replace(/[^\w ]+/g, '').trim().replace(/ +/g, '_')
-        .toLowerCase().slice(0, 32) + '.gba'
-    : 'bookboy_library.gba';
-  a.click();
-  setStatus(`done — ${fmtMB(romSize)} ROM with ${books.length} book` +
-            (books.length > 1 ? 's' : ''));
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(new Blob([rom], { type: 'application/octet-stream' }));
+    a.href = url;
+    a.download = books.length === 1
+      ? books[0].title.replace(/[^\w ]+/g, '').trim().replace(/ +/g, '_')
+          .toLowerCase().slice(0, 32) + '.gba'
+      : 'bookboy_library.gba';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    setBuild(`done — ${fmtMB(romSize)} ROM with ${books.length} book` +
+             (books.length > 1 ? 's' : ''));
+  } catch (e) {
+    setBuild('error building ROM: ' + e.message);
+  }
 }
 
 /* ---------------- events ---------------- */

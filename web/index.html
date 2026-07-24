@@ -1,251 +1,606 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>bookboy advance</title>
-<meta name="description" content="Convert EPUBs into a Game Boy Advance e-reader ROM, entirely in your browser. Nothing is uploaded.">
-<style>
-@font-face { font-family: XCharter; src: url(assets/XCharter-Roman.otf); font-display: swap; }
-@font-face { font-family: XCharter; font-style: italic; src: url(assets/XCharter-Italic.otf); font-display: swap; }
-@font-face { font-family: XCharter; font-weight: bold; src: url(assets/XCharter-Bold.otf); font-display: swap; }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bookboy advance</title>
+    <meta
+      name="description"
+      content="Convert EPUBs into a Game Boy Advance e-reader ROM, entirely in your browser. Nothing is uploaded."
+    />
+    <style>
+      @font-face {
+        font-family: XCharter;
+        src: url(assets/XCharter-Roman.otf);
+        font-display: swap;
+      }
+      @font-face {
+        font-family: XCharter;
+        font-style: italic;
+        src: url(assets/XCharter-Italic.otf);
+        font-display: swap;
+      }
+      @font-face {
+        font-family: XCharter;
+        font-weight: bold;
+        src: url(assets/XCharter-Bold.otf);
+        font-display: swap;
+      }
 
-/* palette lifted verbatim from the GBA runtime (src/main.c) */
-:root {
-  --paper: #F2EAD7;   /* PAPER */
-  --ink:   #2B2620;   /* INK */
-  --s1: #D4CCBB; --s2: #BBB3A4; --s3: #A29B8D; --s4: #90887C;  /* spine greys */
-  --white: #FFFFFF;   /* selected-book spine */
-  --spine-h: 46px;
-}
-* { box-sizing: border-box; }
-html { background: var(--paper); }
-body {
-  margin: 0 auto; max-width: 560px; padding: 20px 16px 0;
-  background: var(--paper); color: var(--ink);
-  font-family: XCharter, Charter, Georgia, serif; font-size: 18px;
-}
-img { image-rendering: pixelated; }
+      /* palette lifted verbatim from the GBA runtime (src/main.c) */
+      :root {
+        --paper: #f2ead7; /* PAPER */
+        --ink: #2b2620; /* INK */
+        --s1: #d4ccbb;
+        --s2: #bbb3a4;
+        --s3: #a29b8d;
+        --s4: #90887c; /* spine greys */
+        --white: #ffffff; /* selected-book spine */
+        --spine-h: 46px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        background: var(--paper);
+      }
+      body {
+        margin: 0 auto;
+        max-width: 560px;
+        padding: 20px 16px 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: XCharter, Charter, Georgia, serif;
+        font-size: 18px;
+      }
+      img {
+        image-rendering: pixelated;
+      }
 
-/* the shelf logo — native art, aspect preserved, no frame */
-.logo { display: block; width: 100%; max-width: 300px; height: auto;
-  margin: 4px auto 2px; }
-.sub { text-align: center; font-style: italic; color: var(--ink); opacity: .7;
-  margin: 0 0 10px; font-size: 15px; }
-.intro { text-align: center; color: var(--ink); margin: 0 auto 22px;
-  max-width: 400px; font-size: 16px; line-height: 1.45; }
+      /* the shelf logo — native art, aspect preserved, no frame */
+      .logo {
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        height: auto;
+        margin: 4px auto 2px;
+      }
+      .sub {
+        text-align: center;
+        font-style: italic;
+        color: var(--ink);
+        opacity: 0.7;
+        margin: 0 0 10px;
+        font-size: 15px;
+      }
+      .intro {
+        text-align: center;
+        color: var(--ink);
+        margin: 0 auto 22px;
+        max-width: 400px;
+        font-size: 16px;
+        line-height: 1.45;
+      }
 
-/* every "book" is the real book.png art. The element carries the art's exact
+      /* every "book" is the real book.png art. The element carries the art's exact
    204:24 aspect so background-size:100% 100% scales it without stretching,
    and a small negative margin overlaps the outlines so the stack touches. */
-.spine {
-  position: relative; display: flex; align-items: center;
-  aspect-ratio: 204 / 24; margin: 0 auto -0.35%; padding: 0 4.5%;
-  color: var(--ink); background: url(assets/spine_1.png) center/100% 100% no-repeat;
-  font-size: clamp(15px, 4.2vw, 21px); letter-spacing: .2px; cursor: default;
-  width: 100%;
-}
-.spine:nth-of-type(4n+1) { background-image: url(assets/spine_1.png); width: 100%; }
-.spine:nth-of-type(4n+2) { background-image: url(assets/spine_2.png); width: 96%; }
-.spine:nth-of-type(4n+3) { background-image: url(assets/spine_3.png); width: 99%; }
-.spine:nth-of-type(4n)   { background-image: url(assets/spine_4.png); width: 94%; }
-.spine .meta { margin-left: auto; opacity: .6; font-size: .72em;
-  white-space: nowrap; padding-left: 12px; }
+      .spine {
+        position: relative;
+        display: flex;
+        align-items: center;
+        aspect-ratio: 204 / 24;
+        margin: 0 auto -1.6%;
+        padding: 0 4.5%;
+        color: var(--ink);
+        background: url(assets/spine_1.png) center/100% 100% no-repeat;
+        font-size: clamp(15px, 4.2vw, 21px);
+        letter-spacing: 0.2px;
+        cursor: default;
+        width: 100%;
+      }
+      .spine:nth-of-type(4n + 1) {
+        background-image: url(assets/spine_1.png);
+        width: 100%;
+      }
+      .spine:nth-of-type(4n + 2) {
+        background-image: url(assets/spine_2.png);
+        width: 96%;
+      }
+      .spine:nth-of-type(4n + 3) {
+        background-image: url(assets/spine_3.png);
+        width: 99%;
+      }
+      .spine:nth-of-type(4n) {
+        background-image: url(assets/spine_4.png);
+        width: 94%;
+      }
+      .spine .meta {
+        margin-left: auto;
+        opacity: 0.6;
+        font-size: 0.72em;
+        white-space: nowrap;
+        padding-left: 12px;
+      }
 
-/* the drop zone: a big white book (single line so the art stays unstretched) */
-#drop {
-  aspect-ratio: 204 / 24; width: 100%; margin: 0 auto 4px;
-  background: url(assets/spine_w.png) center/100% 100% no-repeat;
-  display: flex; align-items: center; justify-content: center;
-  text-align: center; cursor: pointer; transition: filter .12s;
-  font-weight: bold; font-size: clamp(18px, 5vw, 26px); color: var(--ink);
-}
-#drop:hover, #drop.hot { filter: brightness(1.04); }
-.drophint { text-align: center; color: var(--ink); opacity: .6; font-size: 14px;
-  margin: 0 0 14px; }
+      /* the drop zone: a big white book. One line (nowrap) so the art stays
+         unstretched; the font shrinks on narrow screens to keep it fitting. */
+      #drop {
+        aspect-ratio: 204 / 24;
+        width: 100%;
+        margin: 0 auto 14px;
+        background: url(assets/spine_w.png) center/100% 100% no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        white-space: nowrap;
+        padding: 0 4%;
+        cursor: pointer;
+        transition: filter 0.12s;
+        font-weight: bold;
+        font-size: clamp(10px, 3.2vw, 20px);
+        color: var(--ink);
+      }
+      #drop:hover,
+      #drop.hot {
+        filter: brightness(1.04);
+      }
 
-#status { min-height: 22px; text-align: center; font-style: italic;
-  color: var(--ink); opacity: .75; margin: 4px 0 12px; font-size: 15px; }
+      #status {
+        min-height: 22px;
+        text-align: center;
+        font-style: italic;
+        color: var(--ink);
+        opacity: 0.75;
+        margin: 4px 0 12px;
+        font-size: 15px;
+      }
 
-/* shelf of added books — app.js fills #shelf with .book rows (real book art,
+      /* shelf of added books — app.js fills #shelf with .book rows (real book art,
    touching, tinted per position, white when selected) */
-.book { position: relative; display: flex; align-items: center;
-  aspect-ratio: 204 / 24; margin: 0 auto -0.35%; padding: 0 4.5%;
-  color: var(--ink); background: center/100% 100% no-repeat;
-  background-image: url(assets/spine_1.png);
-  font-size: clamp(14px, 4vw, 18px); width: 100%; }
-.book:nth-child(4n+2) { background-image: url(assets/spine_2.png); width: 96%; }
-.book:nth-child(4n+3) { background-image: url(assets/spine_3.png); width: 99%; }
-.book:nth-child(4n)   { background-image: url(assets/spine_4.png); width: 94%; }
-.book.sel { background-image: url(assets/spine_w.png); z-index: 2; }
-.btitle { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bmeta { opacity: .6; font-size: .78em; white-space: nowrap; padding-left: 10px; }
-.del { border: none; background: none; color: var(--ink); opacity: .5;
-  font-size: 1.1em; cursor: pointer; line-height: 1; padding: 0 0 0 8px; }
-.del:hover { opacity: 1; }
+      .book {
+        position: relative;
+        display: flex;
+        align-items: center;
+        aspect-ratio: 204 / 24;
+        margin: 0 auto -1.6%;
+        padding: 0 4.5%;
+        color: var(--ink);
+        background: center/100% 100% no-repeat;
+        background-image: url(assets/spine_1.png);
+        font-size: clamp(14px, 4vw, 18px);
+        width: 100%;
+      }
+      .book:nth-child(4n + 2) {
+        background-image: url(assets/spine_2.png);
+        width: 96%;
+      }
+      .book:nth-child(4n + 3) {
+        background-image: url(assets/spine_3.png);
+        width: 99%;
+      }
+      .book:nth-child(4n) {
+        background-image: url(assets/spine_4.png);
+        width: 94%;
+      }
+      .book.sel {
+        background-image: url(assets/spine_w.png);
+        z-index: 2;
+      }
+      .btitle {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .bmeta {
+        opacity: 0.6;
+        font-size: 0.78em;
+        white-space: nowrap;
+        padding-left: 10px;
+      }
+      .del {
+        border: none;
+        background: none;
+        color: var(--ink);
+        opacity: 0.5;
+        font-size: 1.1em;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0 0 0 8px;
+      }
+      .del:hover {
+        opacity: 1;
+      }
 
-/* capacity: a thin shelf-plank gauge */
-#bar { height: 10px; background: var(--paper); border: 1.5px solid var(--ink);
-  border-radius: 5px; overflow: hidden; margin: 10px auto 2px; width: 100%; }
-#barfill { height: 100%; background: var(--ink); width: 0; transition: width .3s; }
-#barfill.over { background: #8a3324; }
-#barlabel { font-size: 13px; opacity: .6; text-align: center; }
+      /* capacity: a thin shelf-plank gauge */
+      #bar {
+        height: 10px;
+        background: var(--paper);
+        border: 1.5px solid var(--ink);
+        border-radius: 5px;
+        overflow: hidden;
+        margin: 10px auto 2px;
+        width: 100%;
+      }
+      #barfill {
+        height: 100%;
+        background: var(--ink);
+        width: 0;
+        transition: width 0.3s;
+      }
+      #barfill.over {
+        background: #8a3324;
+      }
+      #summary {
+        text-align: center;
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+      #barlabel {
+        opacity: 0.6;
+      }
+      #buildmsg {
+        display: block;
+        color: var(--ink);
+        font-weight: bold;
+        margin-top: 2px;
+      }
 
-/* settings, rendered as one low spine */
-.knobs { display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
-  justify-content: center; font-size: 15px; }
-.knobs label { display: flex; gap: 6px; align-items: center; }
-select { font-family: inherit; font-size: 14px; background: var(--paper);
-  color: var(--ink); border: 1.5px solid var(--ink); border-radius: 5px;
-  padding: 1px 5px; }
-.pal { display: inline-flex; gap: 6px; }
-.pal input { position: absolute; opacity: 0; width: 0; height: 0; }
-.pal span { width: 20px; height: 20px; border-radius: 50%; display: inline-block;
-  border: 2px solid transparent; cursor: pointer; }
-.pal input:checked + span { border-color: var(--ink); }
-.pal input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 2px; }
+      /* settings, one low spine: nowrap so the knobs stay on the book's line */
+      .knobs {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: clamp(7px, 2.5vw, 16px);
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(12px, 3.4vw, 15px);
+        white-space: nowrap;
+      }
+      .knobs label {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      select {
+        font-family: inherit;
+        font-size: 14px;
+        background: var(--paper);
+        color: var(--ink);
+        border: 1.5px solid var(--ink);
+        border-radius: 5px;
+        padding: 1px 5px;
+      }
+      .pal {
+        display: inline-flex;
+        gap: 6px;
+      }
+      .pal input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .pal span {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: inline-block;
+        border: 2px solid transparent;
+        cursor: pointer;
+      }
+      .pal input:checked + span {
+        border-color: var(--ink);
+      }
+      .pal input:focus-visible + span {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
 
-/* live preview: the GBA screen in its shell */
-#previewwrap { display: flex; flex-direction: column; align-items: center;
-  gap: 8px; margin: 16px 0; }
-.gbaframe { background: var(--ink); padding: 12px 14px; border-radius: 12px; }
-#gba { width: 100%; max-width: 480px; image-rendering: pixelated; display: block;
-  border-radius: 2px; }
-.pagenav { display: flex; gap: 12px; align-items: center; font-size: 15px; opacity: .8; }
-.pagenav button { font-family: inherit; font-size: 16px; background: var(--paper);
-  color: var(--ink); border: 1.5px solid var(--ink); border-radius: 6px;
-  padding: 2px 12px; cursor: pointer; }
+      /* live preview: the GBA screen in its shell */
+      #previewwrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin: 16px 0;
+      }
+      .gbaframe {
+        background: var(--ink);
+        padding: 12px 14px;
+        border-radius: 12px;
+      }
+      #gba {
+        width: 100%;
+        max-width: 480px;
+        image-rendering: pixelated;
+        display: block;
+        border-radius: 2px;
+      }
+      .pagenav {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        font-size: 15px;
+        opacity: 0.8;
+      }
+      .pagenav button {
+        font-family: inherit;
+        font-size: 16px;
+        background: var(--paper);
+        color: var(--ink);
+        border: 1.5px solid var(--ink);
+        border-radius: 6px;
+        padding: 2px 12px;
+        cursor: pointer;
+      }
 
-/* the download book — the tall standing tome you take home */
-#buildrow { display: flex; justify-content: center; margin: 16px 0 4px; }
-#build { font-family: inherit; font-size: 22px; letter-spacing: .5px;
-  color: var(--paper); background: var(--ink); border: none;
-  border-radius: 10px; padding: 16px 40px; cursor: pointer;
-  box-shadow: inset 0 -5px 0 rgba(0,0,0,.25); }
-#build:disabled { opacity: .35; cursor: default; }
+      /* the download book — the tall standing tome you take home */
+      #buildrow {
+        display: flex;
+        justify-content: center;
+        margin: 16px 0 4px;
+      }
+      #build {
+        font-family: inherit;
+        font-size: 22px;
+        letter-spacing: 0.5px;
+        color: var(--paper);
+        background: var(--ink);
+        border: none;
+        border-radius: 10px;
+        padding: 16px 40px;
+        cursor: pointer;
+        box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.25);
+      }
+      #build:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
 
-/* guide spines: the book art sits on the <summary>; the opened "page" is a
+      /* guide spines: the book art sits on the <summary>; the opened "page" is a
    cream leaf below it */
-h2.shelf-label { font-size: 15px; letter-spacing: 2px; text-transform: uppercase;
-  opacity: .5; text-align: center; margin: 28px 0 10px; font-weight: normal; }
-details.manual { margin: 0 auto -0.35%; width: 98%; }
-details.manual:nth-of-type(3n+1) summary { background-image: url(assets/spine_2.png); }
-details.manual:nth-of-type(3n+2) summary { background-image: url(assets/spine_3.png); }
-details.manual:nth-of-type(3n)   summary { background-image: url(assets/spine_4.png); }
-details.manual > summary { list-style: none; display: flex; align-items: center;
-  aspect-ratio: 204 / 24; padding: 0 4.5%; cursor: pointer;
-  background: url(assets/spine_2.png) center/100% 100% no-repeat;
-  font-size: clamp(15px, 4.2vw, 19px); color: var(--ink); }
-details.manual > summary::-webkit-details-marker { display: none; }
-details.manual > summary::after { content: "＋"; margin-left: auto; opacity: .5; }
-details.manual[open] > summary::after { content: "－"; }
-details.manual .page { background: var(--paper); color: var(--ink);
-  border: 1.5px solid var(--ink); border-radius: 0 0 9px 9px;
-  margin: -4% 3% 3%; padding: 14px 18px 16px;
-  font-size: 16px; line-height: 1.5; }
-.page kbd { background: var(--s1); border: 1px solid var(--ink); border-radius: 4px;
-  padding: 0 5px; font-family: inherit; font-size: 14px; }
-.page a { color: #8a3324; }
-.page table { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 4px; }
-.page td { padding: 4px 8px 4px 0; vertical-align: top; border-bottom: 1px solid var(--s1); }
+      h2.shelf-label {
+        font-size: 15px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        opacity: 0.5;
+        text-align: center;
+        margin: 28px 0 10px;
+        font-weight: normal;
+      }
+      details.manual {
+        margin: 0 auto -1.6%;
+        width: 98%;
+      }
+      details.manual:nth-of-type(3n + 1) summary {
+        background-image: url(assets/spine_2.png);
+      }
+      details.manual:nth-of-type(3n + 2) summary {
+        background-image: url(assets/spine_3.png);
+      }
+      details.manual:nth-of-type(3n) summary {
+        background-image: url(assets/spine_4.png);
+      }
+      details.manual > summary {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        aspect-ratio: 204 / 24;
+        padding: 0 4.5%;
+        cursor: pointer;
+        background: url(assets/spine_2.png) center/100% 100% no-repeat;
+        font-size: clamp(15px, 4.2vw, 19px);
+        color: var(--ink);
+      }
+      details.manual > summary::-webkit-details-marker {
+        display: none;
+      }
+      details.manual > summary::after {
+        content: "＋";
+        margin-left: auto;
+        opacity: 0.5;
+      }
+      details.manual[open] > summary::after {
+        content: "－";
+      }
+      details.manual .page {
+        background: var(--paper);
+        color: var(--ink);
+        border: 1.5px solid var(--ink);
+        border-radius: 0 0 9px 9px;
+        margin: -4% 3% 3%;
+        padding: 14px 18px 16px;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .page kbd {
+        background: var(--s1);
+        border: 1px solid var(--ink);
+        border-radius: 4px;
+        padding: 0 5px;
+        font-family: inherit;
+        font-size: 14px;
+      }
+      .page a {
+        color: #8a3324;
+      }
+      .page table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 15px;
+        margin-top: 4px;
+      }
+      .page td {
+        padding: 4px 8px 4px 0;
+        vertical-align: top;
+        border-bottom: 1px solid var(--s1);
+      }
 
-footer { text-align: center; margin: 28px 0 0; }
-#fullbody { width: 96px; height: 96px; }
-.colophon { font-size: 12px; opacity: .5; margin: 6px 0 24px; line-height: 1.5; }
-.colophon a { color: inherit; }
-</style>
-</head>
-<body>
-  <img class="logo" src="assets/logo.png" alt="BOOKBOY ADVANCE" width="240" height="160">
-  <p class="sub">a paperback library for your Game Boy Advance</p>
-  <p class="intro">Drop in EPUBs, get a Game Boy Advance ROM — typeset like a
-    paperback, built entirely in your browser. Nothing is uploaded.</p>
-
-  <div id="drop" tabindex="0" role="button" aria-label="Add EPUB files">
-    drop your .epub here
-    <input type="file" id="file" accept=".epub" multiple hidden>
-  </div>
-  <p class="drophint">or tap to choose — add a few to build a whole library</p>
-  <div id="status" role="status" aria-live="polite"></div>
-
-  <div class="spine" style="cursor:auto">
-    <div class="knobs">
-      <label>size
-        <select id="fontsize">
-          <option value="13">13</option>
-          <option value="14" selected>14</option>
-          <option value="16">16</option>
-        </select>
-      </label>
-      <label><input type="checkbox" id="covers" checked> covers</label>
-      <label>palette
-        <span class="pal">
-          <label title="paperback"><input type="radio" name="pal" value="0" checked><span style="background:linear-gradient(135deg,#F2EAD7 50%,#2B2620 50%)"></span></label>
-          <label title="high contrast"><input type="radio" name="pal" value="1"><span style="background:linear-gradient(135deg,#FFFBF0 50%,#000 50%)"></span></label>
-          <label title="bright"><input type="radio" name="pal" value="2"><span style="background:linear-gradient(135deg,#FFF 50%,#333 50%)"></span></label>
-          <label title="night"><input type="radio" name="pal" value="3"><span style="background:linear-gradient(135deg,#101016 50%,#D8D4C8 50%)"></span></label>
-        </span>
-      </label>
-    </div>
-  </div>
-
-  <div id="previewwrap" style="display:none">
-    <div class="gbaframe"><canvas id="gba" width="240" height="160" aria-label="page preview"></canvas></div>
-    <div class="pagenav">
-      <button id="prev" aria-label="previous page">◀</button>
-      <span id="pageno">–</span>
-      <button id="next" aria-label="next page">▶</button>
-    </div>
-  </div>
-
-  <div id="shelfwrap" style="display:none">
-    <div id="shelf"></div>
-    <div id="bar"><div id="barfill"></div></div>
-    <div id="barlabel"></div>
-  </div>
-
-  <div id="buildrow" style="display:none">
-    <button id="build">Download</button>
-  </div>
-
-  <h2 class="shelf-label">the manual</h2>
-
-  <details class="manual">
-    <summary>Getting it onto a Game Boy</summary>
-    <div class="page">
-      You need a <b>flashcart</b> — a cartridge with a microSD slot. Copy the
-      .gba onto the card (FAT32, any folder) and pick it from the cart menu.
-      Your place saves automatically. In the reader:
-      <kbd>A</kbd>/<kbd>→</kbd> forward, <kbd>←</kbd> back,
-      <kbd>↑</kbd>/<kbd>↓</kbd> chapters, <kbd>SELECT</kbd> palette,
-      <kbd>B</kbd> back to the library.
-      <table>
-        <tr><td><b>EZ-Flash&nbsp;Air</b></td><td>~$40, the budget pick (writes the ROM to the cart before playing)</td></tr>
-        <tr><td><b>EverDrive GBA&nbsp;Mini</b></td><td>~$99, premium drag-and-drop</td></tr>
-      </table>
-      Buy from the makers' resellers to dodge clones. Any GBA plays it — the
-      backlit SP (AGS-101) has the nicest screen; the frontlit AGS-001 pairs
-      well with the high-contrast palette.
-    </div>
-  </details>
-
-  <details class="manual">
-    <summary>No Game Boy?</summary>
-    <div class="page">
-      It runs perfectly in an emulator: <a href="https://mgba.io">mGBA</a> on
-      desktop, Delta on iOS, or Lemuroid on Android. Drop the .gba in and read.
-    </div>
-  </details>
-
-  <footer>
-    <img id="fullbody" src="assets/fullbody.png" alt="bookboy" width="100" height="100">
-    <p class="colophon">
-      Typeset in <a href="https://ctan.org/pkg/xcharter">XCharter</a> ·
-      no analytics, no uploads · your books stay yours
+      footer {
+        text-align: center;
+        margin: 28px 0 0;
+      }
+      #fullbody {
+        width: 96px;
+        height: 96px;
+      }
+      .colophon {
+        font-size: 12px;
+        opacity: 0.5;
+        margin: 6px 0 24px;
+        line-height: 1.5;
+      }
+      .colophon a {
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <img
+      class="logo"
+      src="assets/logo.png"
+      alt="BOOKBOY ADVANCE"
+      width="240"
+      height="160"
+    />
+    <p class="sub">a lil' library for Game Boy Advance</p>
+    <p class="intro">
+      Drop in EPUBs, get a Game Boy Advance ROM — typeset like a paperback,
+      built entirely in your browser. Nothing is uploaded.
     </p>
-  </footer>
 
-<script src="bookboy_core.js"></script>
-<script src="app.js"></script>
-</body>
+    <div id="drop" tabindex="0" role="button" aria-label="Add EPUB files">
+      tap to choose file(s) or drop your .epub(s) here
+      <input type="file" id="file" accept=".epub" multiple hidden />
+    </div>
+    <div id="status" role="status" aria-live="polite"></div>
+
+    <div class="spine" style="cursor: auto">
+      <div class="knobs">
+        <label
+          >size
+          <select id="fontsize">
+            <option value="13">13</option>
+            <option value="14" selected>14</option>
+            <option value="16">16</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="covers" checked /> covers</label>
+        <label
+          >palette
+          <span class="pal">
+            <label title="paperback"
+              ><input type="radio" name="pal" value="0" checked /><span
+                style="
+                  background: linear-gradient(135deg, #f2ead7 50%, #2b2620 50%);
+                "
+              ></span
+            ></label>
+            <label title="high contrast"
+              ><input type="radio" name="pal" value="1" /><span
+                style="
+                  background: linear-gradient(135deg, #fffbf0 50%, #000 50%);
+                "
+              ></span
+            ></label>
+            <label title="bright"
+              ><input type="radio" name="pal" value="2" /><span
+                style="background: linear-gradient(135deg, #fff 50%, #333 50%)"
+              ></span
+            ></label>
+            <label title="night"
+              ><input type="radio" name="pal" value="3" /><span
+                style="
+                  background: linear-gradient(135deg, #101016 50%, #d8d4c8 50%);
+                "
+              ></span
+            ></label>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <div id="previewwrap" style="display: none">
+      <div class="gbaframe">
+        <canvas
+          id="gba"
+          width="240"
+          height="160"
+          aria-label="page preview"
+        ></canvas>
+      </div>
+      <div class="pagenav">
+        <button id="prev" aria-label="previous page">◀</button>
+        <span id="pageno">–</span>
+        <button id="next" aria-label="next page">▶</button>
+      </div>
+    </div>
+
+    <div id="shelfwrap" style="display: none">
+      <div id="shelf"></div>
+      <div id="bar"><div id="barfill"></div></div>
+      <div id="summary">
+        <span id="barlabel"></span>
+        <span id="buildmsg"></span>
+      </div>
+    </div>
+
+    <div id="buildrow" style="display: none">
+      <button id="build">Download .gba</button>
+    </div>
+
+    <details class="manual">
+      <summary>Getting it onto a Game Boy</summary>
+      <div class="page">
+        You need a <b>flashcart</b> — a cartridge with a microSD slot. Copy the
+        .gba onto the card (FAT32, any folder) and pick it from the cart menu.
+        Your place saves automatically. In the reader: <kbd>A</kbd>/<kbd>→</kbd>
+        forward, <kbd>←</kbd> back, <kbd>↑</kbd>/<kbd>↓</kbd> chapters,
+        <kbd>SELECT</kbd> palette, <kbd>B</kbd> back to the library.
+        <table>
+          <tr>
+            <td><b>EZ-Flash&nbsp;Air</b></td>
+            <td>
+              ~$40, the budget pick (writes the ROM to the cart before playing)
+            </td>
+          </tr>
+          <tr>
+            <td><b>EverDrive GBA&nbsp;Mini</b></td>
+            <td>~$99, premium drag-and-drop</td>
+          </tr>
+        </table>
+        Buy from the makers' resellers to dodge clones. Any GBA plays it — the
+        backlit SP (AGS-101) has the nicest screen; the frontlit AGS-001 pairs
+        well with the high-contrast palette.
+      </div>
+    </details>
+
+    <details class="manual">
+      <summary>No Game Boy?</summary>
+      <div class="page">
+        It runs perfectly in an emulator: <a href="https://mgba.io">mGBA</a> on
+        desktop, Delta on iOS, or Lemuroid on Android. Drop the .gba in and
+        read.
+      </div>
+    </details>
+
+    <footer>
+      <img
+        id="fullbody"
+        src="assets/fullbody.png"
+        alt="bookboy"
+        width="100"
+        height="100"
+      />
+      <p class="colophon">
+        Typeset in <a href="https://ctan.org/pkg/xcharter">XCharter</a> · no
+        analytics, no uploads · your books stay yours
+      </p>
+    </footer>
+
+    <script src="bookboy_core.js"></script>
+    <script src="app.js"></script>
+  </body>
 </html>
