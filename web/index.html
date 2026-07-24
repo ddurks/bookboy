@@ -54,28 +54,31 @@
         font-family: XCharter, Charter, Georgia, serif;
         font-size: 18px;
         text-transform: lowercase; /* lowercase everything for conformity */
+        font-weight: bold; /* everything bold except the italic bits below */
       }
       img {
         image-rendering: pixelated;
       }
 
-      /* the Game Boy Advance boot banner, flush with the top of the page and
-         capped so it isn't huge on desktop */
-      .banner {
-        display: block;
+      /* header: the GBA boot banner overlaps the top of the shelf logo, both the
+         same width, their top edges aligned and flush with the page top */
+      .header {
+        position: relative;
         width: 100%;
-        max-width: 450px;
-        height: auto;
-        margin: -20px auto 10px; /* -20px cancels the body's top padding → flush */
+        max-width: 300px;
+        margin: -20px auto 4px; /* -20px cancels the body's top padding → flush */
       }
-
-      /* the shelf logo — native art, aspect preserved, no frame */
       .logo {
         display: block;
         width: 100%;
-        max-width: 300px;
         height: auto;
-        margin: 8px auto 4px;
+      }
+      .banner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
       }
 
       /* four device screenshots, 2x2, filling the width with even gaps that
@@ -91,10 +94,19 @@
         width: 100%;
         height: auto;
         image-rendering: auto; /* smooth downscale of the hi-res captures */
+        /* shared device bezel (matches the preview + emulator) */
+        background: #3a3a45;
+        border: 2px solid var(--ink);
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow:
+          0 4px 12px rgba(43, 38, 32, 0.22),
+          inset 0 2px 3px rgba(255, 255, 255, 0.08);
       }
       .sub {
         text-align: center;
         font-style: italic;
+        font-weight: normal;
         color: var(--ink);
         opacity: 0.7;
         margin: 0 0 20px;
@@ -153,6 +165,7 @@
       /* the drop zone: a big white book. One line (nowrap) so the art stays
          unstretched; the font shrinks on narrow screens to keep it fitting. */
       #drop {
+        position: relative;
         aspect-ratio: 204 / 24;
         width: 100%;
         margin: 0 auto -1.6%;
@@ -165,18 +178,31 @@
         padding: 0 4%;
         cursor: pointer;
         transition: filter 0.12s;
-        font-weight: normal; /* match the other book spines */
         font-size: clamp(10px, 3.2vw, 20px);
         color: var(--ink);
+      }
+      /* dashed inner outline — the classic "drop files here" affordance */
+      #drop::before {
+        content: '';
+        position: absolute;
+        inset: 13% 4%;
+        border: 2px dashed var(--ink);
+        border-radius: 7px;
+        opacity: 0.45;
+        pointer-events: none;
       }
       #drop:hover,
       #drop.hot {
         filter: brightness(1.04);
       }
+      #drop.hot::before {
+        opacity: 0.8;
+      }
 
       #status {
         text-align: center;
         font-style: italic;
+        font-weight: normal;
         color: var(--ink);
         opacity: 0.75;
         margin: 16px 0;
@@ -350,9 +376,13 @@
         margin: 32px 0;
       }
       .gbaframe {
-        background: var(--ink);
-        padding: 12px 14px;
+        background: #3a3a45;
+        padding: 10px;
+        border: 2px solid var(--ink);
         border-radius: 12px;
+        box-shadow:
+          0 4px 12px rgba(43, 38, 32, 0.22),
+          inset 0 2px 3px rgba(255, 255, 255, 0.08);
       }
       #gba {
         width: 100%;
@@ -403,9 +433,9 @@
         padding: 16px 20px;
         background: #3a3a45;
         border: 2px solid var(--ink);
-        border-radius: 16px;
+        border-radius: 12px;
         box-shadow:
-          0 5px 16px rgba(43, 38, 32, 0.28),
+          0 4px 12px rgba(43, 38, 32, 0.22),
           inset 0 2px 3px rgba(255, 255, 255, 0.08);
       }
       #emu {
@@ -472,6 +502,22 @@
       details.manual {
         margin: 0 auto -1.6%;
         width: 98%;
+      }
+      /* nudge each guide book left/right, like the jittered GBA library spines */
+      details.manual:nth-of-type(5n + 1) {
+        transform: translateX(-6px);
+      }
+      details.manual:nth-of-type(5n + 2) {
+        transform: translateX(5px);
+      }
+      details.manual:nth-of-type(5n + 3) {
+        transform: translateX(-3px);
+      }
+      details.manual:nth-of-type(5n + 4) {
+        transform: translateX(7px);
+      }
+      details.manual:nth-of-type(5n) {
+        transform: translateX(-4px);
       }
       /* an open section pushes the next book down so its page shows between
          them (positive bottom margin cancels the touching overlap) */
@@ -568,18 +614,20 @@
     </style>
   </head>
   <body>
-    <img
-      class="banner"
-      src="assets/gameboyadvance.svg"
-      alt="Game Boy Advance"
-    />
-    <img
-      class="logo"
-      src="assets/logo.png"
-      alt="BOOKBOY ADVANCE"
-      width="240"
-      height="160"
-    />
+    <div class="header">
+      <img
+        class="logo"
+        src="assets/logo.png"
+        alt="BOOKBOY ADVANCE"
+        width="240"
+        height="160"
+      />
+      <img
+        class="banner"
+        src="assets/gameboyadvance.svg"
+        alt="Game Boy Advance"
+      />
+    </div>
     <p class="sub">a lil' e-reader for Game Boy Advance</p>
     <div class="shots">
       <img src="assets/screenshots/list.png" alt="library book list" />
@@ -689,6 +737,11 @@
         View the source code and contribute on
         <a class="gh" href="https://github.com/ddurks/bookboy">github</a>.
       </div>
+    </details>
+
+    <details class="manual">
+      <summary>why?</summary>
+      <div class="page">TODO</div>
     </details>
 
     <footer>
