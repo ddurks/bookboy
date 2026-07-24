@@ -164,7 +164,7 @@
          unstretched; the font shrinks on narrow screens to keep it fitting. */
       #drop {
         position: relative;
-        aspect-ratio: 204 / 24;
+        aspect-ratio: 204 / 36; /* 1.5x taller than a normal spine for room */
         width: 100%;
         margin: 0 auto -1.6%;
         background: url(assets/spine_w.png) center/100% 100% no-repeat;
@@ -174,37 +174,53 @@
         text-align: center;
         white-space: nowrap;
         padding: 0 4%;
-        cursor: pointer;
+        cursor: default;
         transition: filter 0.12s;
         font-size: clamp(10px, 3.2vw, 20px);
         color: var(--ink);
       }
-      /* the click/tap target, styled as a raised button but kept inside the
-         book spine; on drag-over its border goes dashed (drop affordance) */
+      /* dashed inner outline — the "drop files here" affordance, kept well
+         inside the book's thick outline so it stays visible */
+      #drop::before {
+        content: '';
+        position: absolute;
+        inset: 26% 4.5%;
+        border: 2px dashed var(--ink);
+        border-radius: 6px;
+        opacity: 0.5;
+        pointer-events: none;
+      }
+      #drop.hot {
+        filter: brightness(1.04);
+      }
+      #drop.hot::before {
+        opacity: 0.85;
+      }
       .dropcta {
-        display: inline-block;
+        white-space: nowrap;
+      }
+      /* the "choose file" button — the native file-picker affordance */
+      .choosebtn {
+        font: inherit;
         color: var(--ink);
         background: var(--paper);
         border: 2px solid var(--ink);
-        border-radius: 7px;
-        padding: 3px 16px;
-        box-shadow: 0 2.5px 0 rgba(43, 38, 32, 0.4);
-        white-space: nowrap;
+        border-radius: 5px;
+        padding: 1px 9px;
+        margin-right: 1px;
+        cursor: pointer;
+        box-shadow: 0 2px 0 rgba(43, 38, 32, 0.35);
         transition:
           transform 0.08s,
           box-shadow 0.08s,
           background 0.12s;
       }
-      #drop:hover .dropcta {
+      .choosebtn:hover {
         background: #fffdf7;
       }
-      #drop.hot .dropcta {
-        background: #fffdf7;
-        border-style: dashed;
-      }
-      #drop:active .dropcta {
+      .choosebtn:active {
         transform: translateY(2px);
-        box-shadow: 0 0.5px 0 rgba(43, 38, 32, 0.4);
+        box-shadow: 0 0 0 rgba(43, 38, 32, 0.35);
       }
 
       #status {
@@ -647,10 +663,10 @@
       this page runs entirely in your browser.
     </p>
 
-    <div id="drop" tabindex="0" role="button" aria-label="Add EPUB files">
+    <div id="drop" aria-label="Add EPUB files">
       <span class="dropcta">
-        <span id="dropverb">click/tap</span> to choose file(s) or drop your
-        .epub(s) here
+        <button type="button" id="choose" class="choosebtn">choose file</button>
+        or drop your .epub(s) here
       </span>
       <input type="file" id="file" accept=".epub" multiple hidden />
     </div>

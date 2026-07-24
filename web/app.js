@@ -615,20 +615,7 @@ async function addFiles(files) {
 
 window.addEventListener('DOMContentLoaded', () => {
   const dz = $('drop');
-  // "click" on pointer devices, "tap" on touch
-  const verb = $('dropverb');
-  if (verb)
-    verb.textContent = window.matchMedia('(pointer: coarse)').matches
-      ? 'tap'
-      : 'click';
-  dz.onclick = () => $('file').click();
-  dz.onkeydown = (e) => {
-    // keyboard access (role=button)
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      $('file').click();
-    }
-  };
+  $('choose').onclick = () => $('file').click();
   $('file').onchange = (e) => addFiles(e.target.files);
   dz.ondragover = (e) => {
     e.preventDefault();
