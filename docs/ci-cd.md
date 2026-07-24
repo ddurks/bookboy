@@ -58,18 +58,24 @@ once, then set the repo variable:
 gh variable set AWS_DEPLOY_ROLE_ARN --body 'arn:aws:iam::<ACCOUNT_ID>:role/bookboy-deploy'
 ```
 
-**Trust policy** (lets only this repo's `main` assume the role):
+**Trust policy** (lets only this repo assume the role). Note: this repo emits
+GitHub's **immutable** OIDC subject — `repo:<login>@<user_id>/<repo>@<repo_id>:…`
+— so the `sub` must match that form, not `repo:ddurks/bookboy:…`. Confirm the
+live value by printing the token's `sub` claim in a throwaway workflow step.
 
 ```json
 {
   "Version": "2012-10-17",
   "Statement": [{
     "Effect": "Allow",
-    "Principal": { "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com" },
+    "Principal": { "Federated": "arn:aws:iam::593615615124:oidc-provider/token.actions.githubusercontent.com" },
     "Action": "sts:AssumeRoleWithWebIdentity",
     "Condition": {
       "StringEquals": { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
-      "StringLike": { "token.actions.githubusercontent.com:sub": "repo:ddurks/bookboy:ref:refs/heads/main" }
+      "StringLike": { "token.actions.githubusercontent.com:sub": [
+        "repo:ddurks@13110312/bookboy@1310608434:*",
+        "repo:ddurks/bookboy:*"
+      ] }
     }
   }]
 }

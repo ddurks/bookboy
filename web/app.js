@@ -582,7 +582,7 @@ async function launchEmulator() {
     $('emuwrap').style.display = 'none';
     emuLoaded = false;
     btn.disabled = false;
-    btn.textContent = '▶ preview on a Game Boy';
+    btn.textContent = '▶ run on GBA emulator';
   }
 }
 

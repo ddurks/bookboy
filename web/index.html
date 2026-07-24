@@ -385,7 +385,10 @@
       }
       #emu {
         width: 100%;
-        aspect-ratio: 3 / 2;
+        /* taller than the 3:2 game: EmulatorJS letterboxes the (centered) game
+           and drops its control bar into the band below the screen, so the
+           controls get their own space instead of overlaying the game */
+        aspect-ratio: 3 / 2.6;
         background: var(--ink);
         border: 2px solid #17161a;
         border-radius: 5px;
@@ -603,7 +606,7 @@
 
     <div id="buildrow" style="display: none">
       <button id="build">Download .gba</button>
-      <button id="playbtn">▶ preview on a Game Boy</button>
+      <button id="playbtn">▶ run on GBA emulator</button>
     </div>
 
     <div id="emuwrap" style="display: none">
